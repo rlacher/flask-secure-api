@@ -1,5 +1,9 @@
 # Flask Secure API
 
+<!-- Badges -->
+[![lint](https://img.shields.io/github/actions/workflow/status/rlacher/flask-secure-api/lint.yml?label=lint&style=flat)](https://github.com/rlacher/flask-secure-api/actions/workflows/lint.yml)
+[![license](https://img.shields.io/badge/license-Apache%202.0-lightgrey.svg)](https://opensource.org/license/apache-2-0)
+
 A minimal authentication API built with Python and Flask, focused on showcasing secure API development principles.
 
 ## Key Features
