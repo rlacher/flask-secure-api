@@ -33,9 +33,26 @@ Get the demonstration API running:
 	flask --app api run
 	```
 
+## Documentation
+
+Project documentation is embedded in the code as docstrings. Access it
+using Python's built-in `help()` function:
+
+```python
+>>> import auth
+>>> help(auth)
+```
+
+For help on modules, type the following:
+
+```python
+>>> from auth import routes
+>>> help(auth.routes)
+```
+
 ## Testing
 
-After activating the virtual environment, navigate to the project root and execute the test runner.
+After activating the virtual environment, navigate to the project root and execute the test runner:
 
 ```bash
 pytest
