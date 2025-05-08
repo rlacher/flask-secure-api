@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright 2025 René Lacher
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +14,13 @@
 # limitations under the License.
 
 """
-Implements an in-memory data store for authentication.
+Flask application entry-point for the authentication API.
 
-This module provides a lightweight storage mechanism using Python's
-built-in data structures to manage user credentials and session
-information.
+This script initialises the Flask application and runs it in debug mode.
 """
+from auth import create_app
 
-users = {}
-sessions = {}
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=True)
