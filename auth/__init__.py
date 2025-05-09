@@ -20,12 +20,15 @@ authentication routes and offers core functionality for user login and
 session management.
 """
 from flask import Flask
+from werkzeug.exceptions import HTTPException
 
 from .routes import user as user_routes
+from .errors import handle_http_exception
 
 
 def create_app():
     """Create and configure the Flask application."""
     app = Flask(__name__)
     app.register_blueprint(user_routes.auth_bp)
+    app.register_error_handler(HTTPException, handle_http_exception)
     return app

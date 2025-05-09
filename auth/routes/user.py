@@ -20,7 +20,7 @@ providing the primary authentication interface for the API.
 """
 from http import HTTPStatus
 
-from flask import Blueprint, request, jsonify
+from flask import abort, Blueprint, jsonify, request
 
 from auth.services import user
 
@@ -50,16 +50,14 @@ def register():
     password = data.get('password')
 
     if not username:
-        return jsonify({'error': 'Username is required'}), \
-          HTTPStatus.BAD_REQUEST
+        abort(HTTPStatus.BAD_REQUEST, 'Username is required')
 
     if not password:
-        return jsonify({'error': 'Password is required'}), \
-          HTTPStatus.BAD_REQUEST
+        abort(HTTPStatus.BAD_REQUEST, 'Password is required')
 
     success, message = user.register_user(username, password)
     if not success:
-        return jsonify({'error': message}), HTTPStatus.CONFLICT
+        abort(HTTPStatus.CONFLICT, message)
 
     return jsonify({'message': message}), \
         HTTPStatus.CREATED
@@ -88,15 +86,13 @@ def login():
     password = data.get('password')
 
     if not username:
-        return jsonify({'error': 'Username is required'}), \
-          HTTPStatus.BAD_REQUEST
+        abort(HTTPStatus.BAD_REQUEST, 'Username is required')
 
     if not password:
-        return jsonify({'error': 'Password is required'}), \
-          HTTPStatus.BAD_REQUEST
+        abort(HTTPStatus.BAD_REQUEST, 'Password is required')
 
     success, message = user.login_user(username, password)
     if not success:
-        return jsonify({'error': message}), HTTPStatus.UNAUTHORIZED
+        abort(HTTPStatus.UNAUTHORIZED, message)
 
     return jsonify({'message': message}), HTTPStatus.OK
