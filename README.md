@@ -1,7 +1,9 @@
 # Flask Secure API
 
 <!-- Badges -->
-[![lint](https://img.shields.io/github/actions/workflow/status/rlacher/flask-secure-api/lint.yml?label=lint&style=flat)](https://github.com/rlacher/flask-secure-api/actions/workflows/lint.yml)
+[![flake8](https://img.shields.io/github/actions/workflow/status/rlacher/flask-secure-api/lint.yml?label=flake8&style=flat)](https://github.com/rlacher/flask-secure-api/actions/workflows/lint.yml)
+[![pytest](https://img.shields.io/github/actions/workflow/status/rlacher/flask-secure-api/test.yml?label=pytest&style=flat)](https://github.com/rlacher/flask-secure-api/actions/workflows/test.yml)
+[![codecov](https://img.shields.io/codecov/c/github/rlacher/flask-secure-api?style=flat&label=codecov)](https://app.codecov.io/gh/rlacher/flake-secure-api)
 [![license](https://img.shields.io/badge/license-Apache%202.0-lightgrey.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 A minimal authentication API built with Python and Flask, focused on showcasing secure API development principles.
@@ -12,8 +14,8 @@ A minimal authentication API built with Python and Flask, focused on showcasing 
 - **Session Security:** Token-based protection for dummy data.
 - **Modular Design:** Maintainable and extensible organised codebase.
 - **Clear Documentation:** API endpoint description and Python Docstrings.
-- **Comprehensive Testing:** 100% test coverage for API reliability.
-- **Memory-Based:** Simple in-memory data store for demonstration purposes.
+- **Comprehensive Testing:** Thorough testing practices ensure high API resilience.
+- **Memory-Based:** Simple in-memory store demonstrating core API logic.
 
 ## Quick Start
 
