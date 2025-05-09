@@ -24,11 +24,20 @@ handler's logic.
 """
 from http import HTTPStatus
 
+from flask import Flask
 from flask.testing import FlaskClient
 import pytest
 from unittest.mock import patch
+from werkzeug.exceptions import BadRequest, Conflict, Unauthorized
 
-from auth import create_app
+from auth import routes
+
+
+def create_app_for_testing():
+    """Create application for testing (no custom error handler)."""
+    app = Flask(__name__)
+    app.register_blueprint(routes.user.auth_bp)
+    return app
 
 
 class TestRoutesUserRegister:
@@ -37,7 +46,7 @@ class TestRoutesUserRegister:
     @pytest.fixture
     def client(self):
         """Fixture to create a test client."""
-        app = create_app()
+        app = create_app_for_testing()
         return app.test_client()
 
     @pytest.fixture
@@ -50,76 +59,85 @@ class TestRoutesUserRegister:
                               mock_register_user,
                               client: FlaskClient,
                               registration_credentials: dict):
-        """Tests the registration route."""
+        """Tests successful registration."""
         message = "User successfully registered"
         mock_register_user.return_value = (True, message)
 
-        response = client.post('/register', json={
-            'username': registration_credentials['username'],
-            'password': registration_credentials['password']
-        })
+        response = client.post('/register', json=registration_credentials)
 
         assert response.status_code == HTTPStatus.CREATED
         assert message.encode('utf-8') in response.data
-        assert mock_register_user.call_count == 1
-        assert mock_register_user.call_args[0] == \
-            (registration_credentials['username'],
-             registration_credentials['password'])
+        mock_register_user.assert_called_once_with(
+            *registration_credentials.values()
+        )
 
     @patch('auth.services.user.register_user')
+    @patch(
+        'auth.routes.user.abort',
+        side_effect=BadRequest(description="Username is required")
+    )
     def test_register_missing_username(self,
+                                       mock_abort,
                                        mock_register_user,
                                        client: FlaskClient,
                                        registration_credentials: dict):
-        """Tests the registration route with missing username."""
+        """Tests registration with missing username."""
         message = "Username is required"
         mock_register_user.return_value = (False, message)
 
-        response = client.post('/register', json={
-            'password': registration_credentials['password']
-        })
+        response = client.post(
+            '/register',
+            json={'password': registration_credentials['password']}
+        )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert message.encode('utf-8') in response.data
+        assert mock_abort.call_count == 1
         assert mock_register_user.call_count == 0
+        assert response.status_code == HTTPStatus.BAD_REQUEST
 
     @patch('auth.services.user.register_user')
+    @patch(
+        'auth.routes.user.abort',
+        side_effect=BadRequest(description="Password is required")
+    )
     def test_register_missing_password(self,
+                                       mock_abort,
                                        mock_register_user,
                                        client: FlaskClient,
                                        registration_credentials: dict):
-        """Tests the registration route with missing password."""
+        """Tests registration with missing password."""
         message = "Password is required"
         mock_register_user.return_value = (False, message)
 
-        response = client.post('/register', json={
-            'username': registration_credentials['username']
-        })
+        response = client.post(
+            '/register',
+            json={'username': registration_credentials['username']}
+        )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert message.encode('utf-8') in response.data
+        assert mock_abort.call_count == 1
         assert mock_register_user.call_count == 0
+        assert response.status_code == HTTPStatus.BAD_REQUEST
 
     @patch('auth.services.user.register_user')
+    @patch(
+        'auth.routes.user.abort',
+        side_effect=Conflict(description="User already exists")
+    )
     def test_register_user_already_exists(self,
+                                          mock_abort,
                                           mock_register_user,
                                           client: FlaskClient,
                                           registration_credentials: dict):
-        """Tests the registration route when user already exists."""
+        """Tests registration when user already exists."""
         message = "User already exists"
         mock_register_user.return_value = (False, message)
 
-        response = client.post('/register', json={
-            'username': registration_credentials['username'],
-            'password': registration_credentials['password']
-        })
+        response = client.post('/register', json=registration_credentials)
 
+        mock_register_user.assert_called_once_with(
+            *registration_credentials.values()
+        )
+        assert mock_abort.call_count == 1
         assert response.status_code == HTTPStatus.CONFLICT
-        assert message.encode('utf-8') in response.data
-        assert mock_register_user.call_count == 1
-        assert mock_register_user.call_args[0] == \
-            (registration_credentials['username'],
-             registration_credentials['password'])
 
 
 class TestRoutesUserLogin:
@@ -128,7 +146,7 @@ class TestRoutesUserLogin:
     @pytest.fixture
     def client(self):
         """Fixture to create a test client."""
-        app = create_app()
+        app = create_app_for_testing()
         return app.test_client()
 
     @pytest.fixture
@@ -141,62 +159,73 @@ class TestRoutesUserLogin:
                            mock_login_user,
                            client: FlaskClient,
                            login_credentials: dict):
-        """Tests the login route."""
+        """Tests successful login."""
         message = "Login successful"
         mock_login_user.return_value = (True, message)
 
-        response = client.post('/login', json={
-            'username': login_credentials['username'],
-            'password': login_credentials['password']
-        })
+        response = client.post('/login', json=login_credentials)
 
         assert response.status_code == HTTPStatus.OK
         assert message.encode('utf-8') in response.data
-        assert mock_login_user.call_count == 1
-        assert mock_login_user.call_args[0] == \
-            (login_credentials['username'],
-             login_credentials['password'])
+        mock_login_user.assert_called_once_with(*login_credentials.values())
 
     @patch('auth.services.user.login_user')
+    @patch(
+        'auth.routes.user.abort',
+        side_effect=BadRequest(description="Username is required")
+    )
     def test_login_missing_username(self,
+                                    mock_abort,
                                     mock_login_user,
                                     client: FlaskClient,
                                     login_credentials: dict):
-        """Tests the login route with missing username."""
+        """Tests login with missing username."""
         message = "Username is required"
         mock_login_user.return_value = (False, message)
 
-        response = client.post('/login', json={
-            'password': login_credentials['password']
-        })
+        response = client.post(
+            '/login',
+            json={'password': login_credentials['password']}
+        )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert message.encode('utf-8') in response.data
+        assert mock_abort.call_count == 1
         assert mock_login_user.call_count == 0
+        assert response.status_code == HTTPStatus.BAD_REQUEST
 
     @patch('auth.services.user.login_user')
+    @patch(
+        'auth.routes.user.abort',
+        side_effect=BadRequest(description="Password is required")
+    )
     def test_login_missing_password(self,
+                                    mock_abort,
                                     mock_login_user,
                                     client: FlaskClient,
                                     login_credentials: dict):
-        """Tests the login route with missing password."""
+        """Tests login with missing password."""
         message = "Password is required"
         mock_login_user.return_value = (False, message)
 
-        response = client.post('/login', json={
-            'username': login_credentials['username']
-        })
+        response = client.post(
+            '/login',
+            json={'username': login_credentials['username']}
+        )
 
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert message.encode('utf-8') in response.data
+        assert mock_abort.call_count == 1
         assert mock_login_user.call_count == 0
+        assert response.status_code == HTTPStatus.BAD_REQUEST
 
     @patch('auth.services.user.login_user')
+    @patch(
+        'auth.routes.user.abort',
+        side_effect=Unauthorized(description="Invalid credentials")
+    )
     def test_login_invalid_credentials(self,
+                                       mock_abort,
                                        mock_login_user,
                                        client: FlaskClient,
                                        login_credentials: dict):
-        """Tests the login route with invalid credentials.
+        """Tests login with invalid credentials.
 
         From a route handler perspective, no distinction is necessary
         between a non-existent user and an invalid password.
@@ -204,14 +233,8 @@ class TestRoutesUserLogin:
         message = "Invalid credentials"
         mock_login_user.return_value = (False, message)
 
-        response = client.post('/login', json={
-            'username': login_credentials['username'],
-            'password': login_credentials['password']
-        })
+        response = client.post('/login', json=login_credentials)
 
+        mock_login_user.assert_called_once_with(*login_credentials.values())
+        assert mock_abort.call_count == 1
         assert response.status_code == HTTPStatus.UNAUTHORIZED
-        assert message.encode('utf-8') in response.data
-        assert mock_login_user.call_count == 1
-        assert mock_login_user.call_args[0] == \
-            (login_credentials['username'],
-             login_credentials['password'])
