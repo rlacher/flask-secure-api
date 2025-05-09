@@ -39,15 +39,29 @@ Run the authentication API locally:
 	./run.py
 	```
 
-## API Usage (Example)
+## API Usage
 
-A basic example of interacting with initial API endpoints.
+Below are examples of interacting with key API endpoints.
 
-To register, send a POST request with JSON to `/register`:
+### Register a new user
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"username": "new_user", "password": "secure_password"}' http://localhost:5000/register
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"username": "new_user", "password": "secure_password"}' \
+  http://localhost:5000/register
 ```
+Example response: `{"message": "User successfully registered"}`
+
+### Log in an existing user
+
+```bash
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"username": "new_user", "password": "secure_password"}' \
+  http://localhost:5000/login
+```
+Example response: `{"message": "Login successful"}`
 
 ## Documentation
 
