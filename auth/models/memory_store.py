@@ -21,4 +21,3 @@ information.
 """
 
 users = {}
-sessions = {}

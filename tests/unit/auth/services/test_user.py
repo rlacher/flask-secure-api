@@ -29,21 +29,21 @@ class TestServicesUserRegisterUser:
     successful registration and handling of duplicate usernames.
     """
 
-    @patch('auth.services.user.memory_store')
-    def test_register_user_success(self, mock_memory_store):
+    def test_register_user_success(self):
         """Tests the successful registration of a new user."""
-        mock_memory_store.users = {}
+        empty_user_store = {}
         success, message = services.user.register_user('new_user',
-                                                       'password')
+                                                       'password',
+                                                       empty_user_store)
         assert success is True
         assert message == 'User successfully registered'
 
-    @patch('auth.services.user.memory_store')
-    def test_register_user_duplicate_username(self, mock_memory_store):
+    def test_register_user_duplicate_username(self):
         """Tests the registration of a user with an existing username."""
-        mock_memory_store.users = {'existing_user': 'hashed_password'}
+        user_store_with_user = {'existing_user': 'hashed_password'}
         success, message = services.user.register_user('existing_user',
-                                                       'password')
+                                                       'password',
+                                                       user_store_with_user)
         assert success is False
         assert message == 'User already exists'
 
@@ -56,37 +56,37 @@ class TestServicesUserLoginUser:
     login, invalid password, and non-existent user.
     """
 
-    @patch('auth.services.user.memory_store')
-    def test_login_user_success(self, mock_memory_store):
+    def test_login_user_success(self):
         """Tests the successful login of a user."""
-        mock_memory_store.users = {'test_user': 'hashed_password'}
+        user_store_with_user = {'test_user': 'hashed_password'}
         with patch('auth.services.user.check_password_hash') as mock_check:
             mock_check.return_value = True
             success, message = services.user.login_user('test_user',
-                                                        'correct_password')
+                                                        'correct_password',
+                                                        user_store_with_user)
             assert success is True
             assert message == 'Login successful'
             mock_check.assert_called_once_with('hashed_password',
                                                'correct_password')
 
-    @patch('auth.services.user.memory_store')
-    def test_login_user_invalid_password(self, mock_memory_store):
+    def test_login_user_invalid_password(self):
         """Tests the login of a user with an invalid password."""
-        mock_memory_store.users = {'test_user': 'hashed_password'}
+        user_store_with_user = {'test_user': 'hashed_password'}
         with patch('auth.services.user.check_password_hash') as mock_check:
             mock_check.return_value = False
             success, message = services.user.login_user('test_user',
-                                                        'wrong_password')
+                                                        'wrong_password',
+                                                        user_store_with_user)
             assert success is False
             assert message == 'Invalid password'
             mock_check.assert_called_once_with('hashed_password',
                                                'wrong_password')
 
-    @patch('auth.services.user.memory_store')
-    def test_login_user_non_existent_user(self, mock_memory_store):
+    def test_login_user_non_existent_user(self):
         """Tests the login of a non-existent user."""
-        mock_memory_store.users = {}
+        empty_user_store = {}
         success, message = services.user.login_user('non_existent_user',
-                                                    'password')
+                                                    'password',
+                                                    empty_user_store)
         assert success is False
         assert message == 'User does not exist'

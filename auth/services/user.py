@@ -20,41 +20,48 @@ authentication-related tasks.
 """
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from auth.models import memory_store
 
-
-def register_user(username, password):
+def register_user(username: str,
+                  password: str,
+                  user_store: dict):
     """Registers a new user with the given username and password.
 
     The password is hashed before storage. The username must be unique.
+    The user is stored in a dictionary.
 
     Args:
         username (str): The username of the user.
         password (str): The password of the user.
+        user_store (dict): The dictionary to store user data.
 
     Returns:
         bool: True if registration is successful, False otherwise.
     """
-    if username in memory_store.users:
+    if username in user_store:
         return False, 'User already exists'
 
-    memory_store.users[username] = generate_password_hash(password)
+    user_store[username] = generate_password_hash(password)
     return True, 'User successfully registered'
 
 
-def login_user(username, password):
+def login_user(
+        username: str,
+        password: str,
+        user_store: dict):
     """Logs in a user with the given username and password.
 
     The password is checked against the stored hash.
+    The user must exist in the dictionary.
 
     Args:
         username (str): The username of the user.
         password (str): The password of the user.
+        user_store (dict): The dictionary to access user data.
 
     Returns:
         bool: True if login is successful, False otherwise.
     """
-    hashed_password = memory_store.users.get(username)
+    hashed_password = user_store.get(username)
 
     if not hashed_password:
         return False, 'User does not exist'

@@ -23,6 +23,7 @@ from http import HTTPStatus
 from flask import abort, Blueprint, jsonify, request
 
 from auth.services import user
+from auth.models.memory_store import users as user_store
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -55,7 +56,7 @@ def register():
     if not password:
         abort(HTTPStatus.BAD_REQUEST, 'Password is required')
 
-    success, message = user.register_user(username, password)
+    success, message = user.register_user(username, password, user_store)
     if not success:
         abort(HTTPStatus.CONFLICT, message)
 
@@ -91,7 +92,7 @@ def login():
     if not password:
         abort(HTTPStatus.BAD_REQUEST, 'Password is required')
 
-    success, message = user.login_user(username, password)
+    success, message = user.login_user(username, password, user_store)
     if not success:
         abort(HTTPStatus.UNAUTHORIZED, message)
 

@@ -27,7 +27,7 @@ from http import HTTPStatus
 from flask import Flask
 from flask.testing import FlaskClient
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, ANY
 from werkzeug.exceptions import BadRequest, Conflict, Unauthorized
 
 from auth import routes
@@ -68,7 +68,9 @@ class TestRoutesUserRegister:
         assert response.status_code == HTTPStatus.CREATED
         assert message.encode('utf-8') in response.data
         mock_register_user.assert_called_once_with(
-            *registration_credentials.values()
+            registration_credentials["username"],
+            registration_credentials["password"],
+            ANY
         )
 
     @patch('auth.services.user.register_user')
@@ -134,7 +136,9 @@ class TestRoutesUserRegister:
         response = client.post('/register', json=registration_credentials)
 
         mock_register_user.assert_called_once_with(
-            *registration_credentials.values()
+            registration_credentials["username"],
+            registration_credentials["password"],
+            ANY,
         )
         assert mock_abort.call_count == 1
         assert response.status_code == HTTPStatus.CONFLICT
@@ -167,7 +171,11 @@ class TestRoutesUserLogin:
 
         assert response.status_code == HTTPStatus.OK
         assert message.encode('utf-8') in response.data
-        mock_login_user.assert_called_once_with(*login_credentials.values())
+        mock_login_user.assert_called_once_with(
+            login_credentials["username"],
+            login_credentials["password"],
+            ANY,
+        )
 
     @patch('auth.services.user.login_user')
     @patch(
@@ -235,6 +243,10 @@ class TestRoutesUserLogin:
 
         response = client.post('/login', json=login_credentials)
 
-        mock_login_user.assert_called_once_with(*login_credentials.values())
+        mock_login_user.assert_called_once_with(
+            login_credentials["username"],
+            login_credentials["password"],
+            ANY,
+        )
         assert mock_abort.call_count == 1
         assert response.status_code == HTTPStatus.UNAUTHORIZED
