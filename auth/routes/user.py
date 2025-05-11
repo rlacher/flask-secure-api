@@ -19,12 +19,15 @@ This module defines the Flask routes for user registration and login,
 providing the primary authentication interface for the API.
 """
 from http import HTTPStatus
+import logging
 
 from flask import abort, Blueprint, jsonify, request
 
 from auth.services import user
 from auth.models.memory_store import users as user_store
 
+
+logger = logging.getLogger(__name__)
 auth_bp = Blueprint('auth', __name__)
 
 
@@ -51,9 +54,11 @@ def register():
     password = data.get('password')
 
     if not username:
+        logger.debug("Username is required")
         abort(HTTPStatus.BAD_REQUEST, 'Username is required')
 
     if not password:
+        logger.debug(f"Password required for: {username}")
         abort(HTTPStatus.BAD_REQUEST, 'Password is required')
 
     success, message = user.register_user(username, password, user_store)
@@ -87,9 +92,11 @@ def login():
     password = data.get('password')
 
     if not username:
+        logger.debug("Username is required")
         abort(HTTPStatus.BAD_REQUEST, 'Username is required')
 
     if not password:
+        logger.debug(f"Password required for: {username}")
         abort(HTTPStatus.BAD_REQUEST, 'Password is required')
 
     success, message = user.login_user(username, password, user_store)

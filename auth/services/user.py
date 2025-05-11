@@ -18,7 +18,12 @@ Encapsulates core authentication services.
 This module handles user registration, login and other
 authentication-related tasks.
 """
+import logging
+
 from werkzeug.security import generate_password_hash, check_password_hash
+
+
+logger = logging.getLogger(__name__)
 
 
 def register_user(username: str,
@@ -38,9 +43,12 @@ def register_user(username: str,
         bool: True if registration is successful, False otherwise.
     """
     if username in user_store:
+        logger.warning(f"User already exists: {username}")
         return False, 'User already exists'
 
     user_store[username] = generate_password_hash(password)
+
+    logger.info(f"User registered: {username}")
     return True, 'User successfully registered'
 
 
@@ -64,9 +72,12 @@ def login_user(
     hashed_password = user_store.get(username)
 
     if not hashed_password:
+        logger.warning(f"User does not exist: {username}")
         return False, 'User does not exist'
 
     if not check_password_hash(hashed_password, password):
+        logger.warning(f"Invalid password for: {username}")
         return False, 'Invalid password'
 
+    logger.info(f"User logged in: {username}")
     return True, 'Login successful'

@@ -17,11 +17,16 @@
 This module provides custom exception handlers for HTTP errors that
 occur within the application.
 """
+import logging
+
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
 
 
-def handle_http_exception(e: HTTPException):
+logger = logging.getLogger(__name__)
+
+
+def handle_http_exception(exception: HTTPException):
     """Handle HTTP exceptions and return a JSON response.
 
     This handler formats HTTP errors as JSON, including the error
@@ -34,14 +39,19 @@ def handle_http_exception(e: HTTPException):
     Raises:
         RuntimeError: If the provided exception is not an HTTPException.
     """
-    if not isinstance(e, HTTPException):
+    if not isinstance(exception, HTTPException):
         raise RuntimeError(
-            "Must be an HTTPException, but got: {}".format(type(e).__name__)
+            f"Must be an HTTPException, but got: {type(exception).__name__}"
         )
 
-    response = jsonify(
-        {'error': e.description if hasattr(e, 'description') else str(e)}
-    )
+    logger.warning(f"Handling exception: {exception}", exc_info=True)
+
+    response = jsonify({
+        'error': exception.description
+        if hasattr(exception, 'description')
+        else str(exception)
+    })
     response.content_type = "application/json"
-    response.status_code = e.code if hasattr(e, 'code') else 500
+    response.status_code = \
+        exception.code if hasattr(exception, 'code') else 500
     return response

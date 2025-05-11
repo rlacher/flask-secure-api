@@ -13,17 +13,36 @@
 # limitations under the License.
 
 """
-Authentication package comprising the authentication API.
+Authentication package.
 
-This package exposes the authentication Blueprint for integrating
-authentication routes and offers core functionality for user login and
-session management.
+Provides the authentication Blueprint for API routes, and core
+functionality for user login and session management.
+
+Configures the root logger for stdout output.
 """
+import sys
+import logging
+
 from flask import Flask
 from werkzeug.exceptions import HTTPException
 
 from .routes import user as user_routes
 from .errors import handle_http_exception
+
+
+def configure_logging():
+    """Configure basic console logging for the application."""
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+
+    if not logger.hasHandlers():
+        handler = logging.StreamHandler(sys.stdout)
+        formatter = logging.Formatter(
+            '%(asctime)s %(name)s %(levelname)s %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
 
 def create_app():
@@ -32,3 +51,6 @@ def create_app():
     app.register_blueprint(user_routes.auth_bp)
     app.register_error_handler(HTTPException, handle_http_exception)
     return app
+
+
+configure_logging()
