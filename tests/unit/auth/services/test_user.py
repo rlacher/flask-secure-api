@@ -18,7 +18,14 @@ Tests the user registration and login functionality, verifying correct
 responses for both successful and error scenarios.
 """
 from unittest.mock import patch
+from pytest import raises
+
 from auth import services
+from auth.exceptions import (
+    UserAlreadyExistsError,
+    UserDoesNotExistError,
+    InvalidPasswordError
+)
 
 
 class TestServicesUserRegisterUser:
@@ -32,20 +39,25 @@ class TestServicesUserRegisterUser:
     def test_register_user_success(self):
         """Tests the successful registration of a new user."""
         empty_user_store = {}
-        success, message = services.user.register_user('new_user',
-                                                       'password',
-                                                       empty_user_store)
-        assert success is True
-        assert message == 'User successfully registered'
+        with patch(
+            'auth.services.user.generate_password_hash'
+        ) as mock_generate_password_hash:
+            hashed_password = "hashed_password"
+            mock_generate_password_hash.return_value = hashed_password
+
+            services.user.register_user('new_user',
+                                        'password',
+                                        empty_user_store)
+            assert len(empty_user_store) == 1
+            assert empty_user_store.get('new_user') == hashed_password
 
     def test_register_user_duplicate_username(self):
         """Tests the registration of a user with an existing username."""
         user_store_with_user = {'existing_user': 'hashed_password'}
-        success, message = services.user.register_user('existing_user',
-                                                       'password',
-                                                       user_store_with_user)
-        assert success is False
-        assert message == 'User already exists'
+        with raises(UserAlreadyExistsError):
+            services.user.register_user('existing_user',
+                                        'password',
+                                        user_store_with_user)
 
 
 class TestServicesUserLoginUser:
@@ -61,11 +73,9 @@ class TestServicesUserLoginUser:
         user_store_with_user = {'test_user': 'hashed_password'}
         with patch('auth.services.user.check_password_hash') as mock_check:
             mock_check.return_value = True
-            success, message = services.user.login_user('test_user',
-                                                        'correct_password',
-                                                        user_store_with_user)
-            assert success is True
-            assert message == 'Login successful'
+            services.user.login_user('test_user',
+                                     'correct_password',
+                                     user_store_with_user)
             mock_check.assert_called_once_with('hashed_password',
                                                'correct_password')
 
@@ -74,19 +84,17 @@ class TestServicesUserLoginUser:
         user_store_with_user = {'test_user': 'hashed_password'}
         with patch('auth.services.user.check_password_hash') as mock_check:
             mock_check.return_value = False
-            success, message = services.user.login_user('test_user',
-                                                        'wrong_password',
-                                                        user_store_with_user)
-            assert success is False
-            assert message == 'Invalid password'
+            with raises(InvalidPasswordError):
+                services.user.login_user('test_user',
+                                         'wrong_password',
+                                         user_store_with_user)
             mock_check.assert_called_once_with('hashed_password',
                                                'wrong_password')
 
     def test_login_user_non_existent_user(self):
         """Tests the login of a non-existent user."""
         empty_user_store = {}
-        success, message = services.user.login_user('non_existent_user',
-                                                    'password',
-                                                    empty_user_store)
-        assert success is False
-        assert message == 'User does not exist'
+        with raises(UserDoesNotExistError):
+            services.user.login_user('non_existent_user',
+                                     'password',
+                                     empty_user_store)

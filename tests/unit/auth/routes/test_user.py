@@ -31,6 +31,10 @@ from unittest.mock import patch, ANY
 from werkzeug.exceptions import BadRequest, Conflict, Unauthorized
 
 from auth import routes
+from auth.exceptions import (
+    UserAlreadyExistsError,
+    InvalidPasswordError
+)
 
 
 def create_app_for_testing():
@@ -130,8 +134,7 @@ class TestRoutesUserRegister:
                                           client: FlaskClient,
                                           registration_credentials: dict):
         """Tests registration when user already exists."""
-        message = "User already exists"
-        mock_register_user.return_value = (False, message)
+        mock_register_user.side_effect = UserAlreadyExistsError()
 
         response = client.post('/register', json=registration_credentials)
 
@@ -228,18 +231,17 @@ class TestRoutesUserLogin:
         'auth.routes.user.abort',
         side_effect=Unauthorized(description="Invalid credentials")
     )
-    def test_login_invalid_credentials(self,
-                                       mock_abort,
-                                       mock_login_user,
-                                       client: FlaskClient,
-                                       login_credentials: dict):
-        """Tests login with invalid credentials.
+    def test_login_invalid_password(self,
+                                    mock_abort,
+                                    mock_login_user,
+                                    client: FlaskClient,
+                                    login_credentials: dict):
+        """Tests login with invalid password.
 
         From a route handler perspective, no distinction is necessary
         between a non-existent user and an invalid password.
         """
-        message = "Invalid credentials"
-        mock_login_user.return_value = (False, message)
+        mock_login_user.side_effect = InvalidPasswordError()
 
         response = client.post('/login', json=login_credentials)
 

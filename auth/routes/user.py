@@ -25,6 +25,7 @@ from flask import abort, Blueprint, jsonify, request
 
 from auth.services import user
 from auth.models.memory_store import users as user_store
+from auth.exceptions import ServiceError
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ def register():
               If the request lacks required fields
               (handled directly in the route).
             - 409 (CONFLICT):
-              If the username already exists
+              If the registration was unsuccessful.
               (determined by the service).
     """
     data = request.get_json()
@@ -61,12 +62,14 @@ def register():
         logger.debug(f"Password required for: {username}")
         abort(HTTPStatus.BAD_REQUEST, 'Password is required')
 
-    success, message = user.register_user(username, password, user_store)
-    if not success:
-        abort(HTTPStatus.CONFLICT, message)
+    try:
+        user.register_user(username, password, user_store)
+    except ServiceError as service_error:
+        abort(HTTPStatus.CONFLICT, service_error.description)
 
-    return jsonify({'message': message}), \
-        HTTPStatus.CREATED
+    return jsonify(
+        {'message': "User successfully registered"}
+    ), HTTPStatus.CREATED
 
 
 @auth_bp.route('/login', methods=['POST'])
@@ -81,11 +84,11 @@ def login():
             - 200 (OK):
               On successful login.
             - 400 (BAD_REQUEST):
-              Contains an 'error' key with a description of the missing fields
+              Describes the missing field
               (handled directly in the route).
             - 401 (UNAUTHORIZED):
-              - Contains an 'error' key indicating a failed login attempt
-              with a description of the reason (determined by the service).
+              Indicates the failed login attempt
+              (determined by the service).
     """
     data = request.get_json()
     username = data.get('username')
@@ -99,8 +102,9 @@ def login():
         logger.debug(f"Password required for: {username}")
         abort(HTTPStatus.BAD_REQUEST, 'Password is required')
 
-    success, message = user.login_user(username, password, user_store)
-    if not success:
-        abort(HTTPStatus.UNAUTHORIZED, message)
+    try:
+        user.login_user(username, password, user_store)
+    except ServiceError as service_error:
+        abort(HTTPStatus.UNAUTHORIZED, service_error.description)
 
-    return jsonify({'message': message}), HTTPStatus.OK
+    return jsonify({'message': "Login successful"}), HTTPStatus.OK

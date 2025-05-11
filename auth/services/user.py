@@ -22,6 +22,12 @@ import logging
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from auth.exceptions import (
+    UserAlreadyExistsError,
+    UserDoesNotExistError,
+    InvalidPasswordError
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -39,17 +45,14 @@ def register_user(username: str,
         password (str): The password of the user.
         user_store (dict): The dictionary to store user data.
 
-    Returns:
-        bool: True if registration is successful, False otherwise.
+    Raises:
+        UserAlreadyExistsError: If user_store already contains username.
     """
     if username in user_store:
-        logger.warning(f"User already exists: {username}")
-        return False, 'User already exists'
+        raise UserAlreadyExistsError()
 
     user_store[username] = generate_password_hash(password)
-
     logger.info(f"User registered: {username}")
-    return True, 'User successfully registered'
 
 
 def login_user(
@@ -66,18 +69,16 @@ def login_user(
         password (str): The password of the user.
         user_store (dict): The dictionary to access user data.
 
-    Returns:
-        bool: True if login is successful, False otherwise.
+    Raises:
+        UserDoesNotExistError: If the username does not exist in user_store.
+        InvalidPasswordError: If the password for username does not match.
     """
     hashed_password = user_store.get(username)
 
     if not hashed_password:
-        logger.warning(f"User does not exist: {username}")
-        return False, 'User does not exist'
+        raise UserDoesNotExistError()
 
     if not check_password_hash(hashed_password, password):
-        logger.warning(f"Invalid password for: {username}")
-        return False, 'Invalid password'
+        raise InvalidPasswordError()
 
     logger.info(f"User logged in: {username}")
-    return True, 'Login successful'

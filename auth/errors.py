@@ -37,21 +37,16 @@ def handle_http_exception(exception: HTTPException):
     Returns:
         Response: A JSON response with the error message and status code.
     Raises:
-        RuntimeError: If the provided exception is not an HTTPException.
+        TypeError: If the provided exception is not an HTTPException.
     """
     if not isinstance(exception, HTTPException):
-        raise RuntimeError(
+        raise TypeError(
             f"Must be an HTTPException, but got: {type(exception).__name__}"
         )
 
     logger.warning(f"Handling exception: {exception}", exc_info=True)
 
-    response = jsonify({
-        'error': exception.description
-        if hasattr(exception, 'description')
-        else str(exception)
-    })
+    response = jsonify({'error': exception.description})
+    response.status_code = exception.code
     response.content_type = "application/json"
-    response.status_code = \
-        exception.code if hasattr(exception, 'code') else 500
     return response

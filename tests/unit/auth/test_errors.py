@@ -13,37 +13,41 @@
 # limitations under the License.
 
 """Unit tests for the errors module."""
+from http import HTTPStatus
+
 from pytest import raises
 from unittest.mock import patch, MagicMock
 from auth.errors import handle_http_exception
 from werkzeug.exceptions import BadRequest
 
 
-@patch('auth.errors.jsonify')
-def test_handle_http_exception_happy_path(mock_jsonify):
-    """Test handling a standard BadRequest exception.
+class TestErrors:
+    """Provides tests for custom error handling."""
 
-    Mocks the jsonify function to return a mock response object.
-    """
-    mock_exception = BadRequest("Invalid input")
-    mock_response = MagicMock()
-    mock_jsonify.return_value = mock_response
+    @patch('auth.errors.jsonify')
+    def test_handle_http_exception_happy_path(self, mock_jsonify):
+        """Test handling a standard BadRequest exception.
 
-    result = handle_http_exception(mock_exception)
+        Mocks the jsonify function to return a mock response object.
+        """
+        exception = BadRequest("Invalid input")
+        mock_response = MagicMock()
+        mock_jsonify.return_value = mock_response
 
-    mock_jsonify.assert_called_once_with({'error': 'Invalid input'})
-    assert result is mock_response
-    assert result.status_code == 400
-    assert result.content_type == 'application/json'
+        result = handle_http_exception(exception)
 
+        mock_jsonify.assert_called_once_with({'error': 'Invalid input'})
+        assert result is mock_response
+        assert result.status_code == HTTPStatus.BAD_REQUEST
+        assert result.content_type == 'application/json'
 
-def test_handle_http_exception_non_http_exception():
-    """Test handling a non-HTTP exception
+    def test_handle_http_exception_non_http_exception(self):
+        """Test handling a non-HTTP exception
 
-    This test checks that a RuntimeError is raised when a non-HTTP
-    exception is passed to the handle_http_exception().
-    """
-    mock_exception = MagicMock(spec=Exception)
+        This test checks that a TypeError is raised when a non-HTTP
+        exception is passed to the handle_http_exception().
+        """
+        mock_exception = MagicMock(spec=Exception)
 
-    with raises(RuntimeError):
-        handle_http_exception(mock_exception)
+        with raises(TypeError):
+            handle_http_exception(mock_exception)
