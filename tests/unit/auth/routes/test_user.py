@@ -58,19 +58,33 @@ class TestRoutesUserRegister:
         """Fixture to provide registration credentials."""
         return {"username": "new_user", "password": "secure_password"}
 
+    @patch('auth.routes.user.validate_username')
+    @patch('auth.routes.user.validate_password')
     @patch('auth.services.user.register_user')
     def test_register_success(self,
                               mock_register_user,
+                              mock_validate_password,
+                              mock_validate_username,
                               client: FlaskClient,
                               registration_credentials: dict):
         """Tests successful registration."""
         message = "User successfully registered"
+        mock_validate_username.return_value = \
+            registration_credentials['username']
+        mock_validate_password.return_value = \
+            registration_credentials['password']
         mock_register_user.return_value = (True, message)
 
         response = client.post('/register', json=registration_credentials)
 
         assert response.status_code == HTTPStatus.CREATED
         assert message.encode('utf-8') in response.data
+        mock_validate_username.assert_called_once_with(
+            registration_credentials['username']
+        )
+        mock_validate_password.assert_called_once_with(
+            registration_credentials['password']
+        )
         mock_register_user.assert_called_once_with(
             registration_credentials["username"],
             registration_credentials["password"],
@@ -123,6 +137,8 @@ class TestRoutesUserRegister:
         assert mock_register_user.call_count == 0
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
+    @patch('auth.routes.user.validate_username')
+    @patch('auth.routes.user.validate_password')
     @patch('auth.services.user.register_user')
     @patch(
         'auth.routes.user.abort',
@@ -131,9 +147,15 @@ class TestRoutesUserRegister:
     def test_register_user_already_exists(self,
                                           mock_abort,
                                           mock_register_user,
+                                          mock_validate_password,
+                                          mock_validate_username,
                                           client: FlaskClient,
                                           registration_credentials: dict):
         """Tests registration when user already exists."""
+        mock_validate_username.return_value = \
+            registration_credentials['username']
+        mock_validate_password.return_value = \
+            registration_credentials['password']
         mock_register_user.side_effect = UserAlreadyExistsError()
 
         response = client.post('/register', json=registration_credentials)
@@ -144,6 +166,12 @@ class TestRoutesUserRegister:
             ANY,
         )
         assert mock_abort.call_count == 1
+        mock_validate_username.assert_called_once_with(
+            registration_credentials['username']
+        )
+        mock_validate_password.assert_called_once_with(
+            registration_credentials['password']
+        )
         assert response.status_code == HTTPStatus.CONFLICT
 
 
@@ -161,19 +189,31 @@ class TestRoutesUserLogin:
         """Fixture to provide login credentials."""
         return {"username": "test_user", "password": "secure_password"}
 
+    @patch('auth.routes.user.validate_username')
+    @patch('auth.routes.user.validate_password')
     @patch('auth.services.user.login_user')
     def test_login_success(self,
                            mock_login_user,
+                           mock_validate_password,
+                           mock_validate_username,
                            client: FlaskClient,
                            login_credentials: dict):
         """Tests successful login."""
         message = "Login successful"
+        mock_validate_username.return_value = login_credentials['username']
+        mock_validate_password.return_value = login_credentials['password']
         mock_login_user.return_value = (True, message)
 
         response = client.post('/login', json=login_credentials)
 
         assert response.status_code == HTTPStatus.OK
         assert message.encode('utf-8') in response.data
+        mock_validate_username.assert_called_once_with(
+            login_credentials['username']
+        )
+        mock_validate_password.assert_called_once_with(
+            login_credentials['password']
+        )
         mock_login_user.assert_called_once_with(
             login_credentials["username"],
             login_credentials["password"],
@@ -226,6 +266,8 @@ class TestRoutesUserLogin:
         assert mock_login_user.call_count == 0
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
+    @patch('auth.routes.user.validate_username')
+    @patch('auth.routes.user.validate_password')
     @patch('auth.services.user.login_user')
     @patch(
         'auth.routes.user.abort',
@@ -234,17 +276,27 @@ class TestRoutesUserLogin:
     def test_login_invalid_password(self,
                                     mock_abort,
                                     mock_login_user,
+                                    mock_validate_password,
+                                    mock_validate_username,
                                     client: FlaskClient,
                                     login_credentials: dict):
         """Tests login with invalid password.
 
         From a route handler perspective, no distinction is necessary
-        between a non-existent user and an invalid password.
+        between a non-existent user and a invalid password.
         """
+        mock_validate_username.return_value = login_credentials['username']
+        mock_validate_password.return_value = login_credentials['password']
         mock_login_user.side_effect = InvalidPasswordError()
 
         response = client.post('/login', json=login_credentials)
 
+        mock_validate_username.assert_called_once_with(
+            login_credentials['username']
+        )
+        mock_validate_password.assert_called_once_with(
+            login_credentials['password']
+        )
         mock_login_user.assert_called_once_with(
             login_credentials["username"],
             login_credentials["password"],
