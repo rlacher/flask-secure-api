@@ -20,4 +20,4 @@ built-in data structures to manage user credentials and session
 information.
 """
 
-users = {}
+users: dict[str, str] = {}
