@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class ServiceError(Exception):
     """Base class for service-related errors."""
+    description = "A service error occurred."
 
     def __init__(self, message=None):
         """Initialises the ServiceError instance."""
@@ -28,7 +29,7 @@ class ServiceError(Exception):
         super().__init__(self.message)
 
     def __str__(self):
-        """Returns the error message as a string."""
+        """Returns a string representation of the error."""
         return self.message
 
 

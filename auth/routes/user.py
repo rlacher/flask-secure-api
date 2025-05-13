@@ -95,7 +95,7 @@ def register():
     try:
         user.register_user(validated_username, validated_password, user_store)
     except ServiceError as service_error:
-        abort(HTTPStatus.CONFLICT, service_error.description)
+        abort(HTTPStatus.CONFLICT, str(service_error))
 
     return jsonify(
         {'message': "User successfully registered"}
@@ -161,6 +161,6 @@ def login():
     try:
         user.login_user(validated_username, validated_password, user_store)
     except ServiceError as service_error:
-        abort(HTTPStatus.UNAUTHORIZED, service_error.description)
+        abort(HTTPStatus.UNAUTHORIZED, str(service_error))
 
     return jsonify({'message': "Login successful"}), HTTPStatus.OK
