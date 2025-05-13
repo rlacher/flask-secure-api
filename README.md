@@ -49,7 +49,7 @@ Below are examples of interacting with key API endpoints.
 ```bash
 curl -X POST \
   -H "Content-Type: application/json" \
-  -d '{"username": "new_user", "password": "secure_password"}' \
+  -d '{"username": "new_user", "password": "secure_password1"}' \
   http://localhost:5000/register
 ```
 Example response: `{"message": "User successfully registered"}`
@@ -59,7 +59,7 @@ Example response: `{"message": "User successfully registered"}`
 ```bash
 curl -X POST \
   -H "Content-Type: application/json" \
-  -d '{"username": "new_user", "password": "secure_password"}' \
+  -d '{"username": "new_user", "password": "secure_password1"}' \
   http://localhost:5000/login
 ```
 Example response: `{"message": "Login successful"}`
