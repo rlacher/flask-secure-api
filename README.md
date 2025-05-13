@@ -12,9 +12,10 @@ A minimal authentication API built with Python and Flask, focused on showcasing 
 
 - **Basic Authentication:** Essential user registration and login functionality.
 - **Session Security:** Token-based protection for dummy data.
+- **Input Validation:** Robust input validation to prevent malicious data entry.
 - **Modular Design:** Maintainable and extensible organised codebase.
 - **Clear Documentation:** API endpoint description and Python Docstrings.
-- **Comprehensive Testing:** Thorough testing practices ensure high API resilience.
+- **Comprehensive Testing:** Unit and integration tests ensure high API resilience.
 - **Memory-Based:** Simple in-memory store demonstrating core API logic.
 
 ## Quick Start
@@ -82,6 +83,8 @@ For help on modules/functions, type the following:
 ```
 
 ## Test
+
+This project includes automated unit and integration tests to guarantee API integrity.
 
 ### Execution
 
