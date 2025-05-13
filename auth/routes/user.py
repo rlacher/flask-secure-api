@@ -69,16 +69,28 @@ def register():
     try:
         validated_username = validate_username(username)
     except TypeError as type_error:
-        abort(HTTPStatus.BAD_REQUEST, f'Bad username: {type_error.args[0]}')
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid username: {type_error.args[0]}'
+        )
     except ValueError as value_error:
-        abort(HTTPStatus.BAD_REQUEST, f'Bad username: {value_error.args[0]}')
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid username: {value_error.args[0]}'
+        )
 
     try:
         validated_password = validate_password(password)
     except TypeError as type_error:
-        abort(HTTPStatus.BAD_REQUEST, f'Bad password: {type_error.args[0]}')
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid password: {type_error.args[0]}'
+        )
     except ValueError as value_error:
-        abort(HTTPStatus.BAD_REQUEST, f'Bad password: {value_error.args[0]}')
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid password: {value_error.args[0]}'
+        )
 
     try:
         user.register_user(validated_username, validated_password, user_store)
@@ -123,16 +135,28 @@ def login():
     try:
         validated_username = validate_username(username)
     except TypeError as type_error:
-        abort(HTTPStatus.BAD_REQUEST, f'Bad username: {type_error.args[0]}')
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid username: {type_error.args[0]}'
+        )
     except ValueError as value_error:
-        abort(HTTPStatus.BAD_REQUEST, f'Bad username: {value_error.args[0]}')
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid username: {value_error.args[0]}'
+        )
 
     try:
         validated_password = validate_password(password)
     except TypeError as type_error:
-        abort(HTTPStatus.BAD_REQUEST, f'Bad password: {type_error.args[0]}')
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid password: {type_error.args[0]}'
+        )
     except ValueError as value_error:
-        abort(HTTPStatus.BAD_REQUEST, f'Bad password: {value_error.args[0]}')
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid password: {value_error.args[0]}'
+        )
 
     try:
         user.login_user(validated_username, validated_password, user_store)

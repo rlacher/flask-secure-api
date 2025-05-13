@@ -42,6 +42,6 @@ class UserDoesNotExistError(ServiceError):
     description = "User does not exist"
 
 
-class InvalidPasswordError(ServiceError):
-    """Raised when a user's password is invalid."""
-    description = "Invalid password"
+class WrongPasswordError(ServiceError):
+    """Raised when a user's password is wrong."""
+    description = "Wrong password"

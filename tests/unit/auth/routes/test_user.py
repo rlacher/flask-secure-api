@@ -33,7 +33,7 @@ from werkzeug.exceptions import BadRequest, Conflict, Unauthorized
 from auth import routes
 from auth.exceptions import (
     UserAlreadyExistsError,
-    InvalidPasswordError
+    WrongPasswordError
 )
 
 
@@ -287,7 +287,7 @@ class TestRoutesUserLogin:
         """
         mock_validate_username.return_value = login_credentials['username']
         mock_validate_password.return_value = login_credentials['password']
-        mock_login_user.side_effect = InvalidPasswordError()
+        mock_login_user.side_effect = WrongPasswordError()
 
         response = client.post('/login', json=login_credentials)
 

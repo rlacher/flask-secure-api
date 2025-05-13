@@ -16,7 +16,7 @@
 from auth.exceptions import (
     ServiceError,
     UserAlreadyExistsError,
-    InvalidPasswordError
+    WrongPasswordError
 )
 
 
@@ -35,5 +35,5 @@ class TestServiceErrorBase:
 
     def test_init_override_default_message(self):
         """Tests overwrite of error message in subclass."""
-        err = InvalidPasswordError("Custom error")
+        err = WrongPasswordError("Custom error")
         assert str(err) == "Custom error"
