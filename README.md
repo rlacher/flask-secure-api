@@ -13,7 +13,7 @@ A minimal authentication API built with Python and Flask, focused on showcasing 
 - **Basic Authentication:** Essential user registration and login functionality.
 - **Input Validation:** Robust input validation to prevent malicious data entry.
 - **Modular Design:** Maintainable and extensible organised codebase.
-- **Clear Documentation:** API endpoint description and Python Docstrings.
+- **Clear Documentation:** API endpoint specification and Python docstrings.
 - **Comprehensive Testing:** Unit and integration tests ensure high API resilience.
 - **Memory-Based:** Simple in-memory store demonstrating core API logic.
 
@@ -81,9 +81,13 @@ curl -X POST \
 ```
 Example response: `{"error": "Invalid username: Must be 3-20 alphanumeric characters or underscore"}`
 
-Similarly, providing an invalid password will also result in a 400 Bad Request. Attempting to register with a duplicate or log in with a non-existent user will yield a `409 Conflict` and `401 Unauthorized` error, respectively. 
+Similarly, providing an invalid password will also result in a `400 Bad Request`. Attempting to register with a duplicate or log in with a non-existent user will yield a `409 Conflict` and `401 Unauthorized` error, respectively.
 
 ## Documentation
+
+This section outlines how to access the project's  Python docstrings and auto-generated OpenAPI specification.
+
+### Python Docstrings
 
 Project documentation is embedded in the code as docstrings. Access it
 using Python's built-in `help()` function:
@@ -100,6 +104,15 @@ For help on modules/functions, type the following:
 >>> help(auth.routes)
 >>> help(auth.routes.user.register) # Help for register() function
 ```
+
+### API Specification (OpenAPI)
+
+API documentation is automatically generated in OpenAPI format.
+
+For interactive exploration using the Swagger UI:
+
+1.  Ensure the Flask application is running.
+2.  Navigate your web browser to `http://localhost:5000/apidocs/`.
 
 ## Test
 

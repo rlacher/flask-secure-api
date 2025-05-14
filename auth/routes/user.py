@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Sets up API route handlers for user authentication.
 
@@ -43,16 +42,56 @@ def register():
     Accepts a JSON request with 'username' and 'password' fields.
 
     Returns:
-        A JSON response with HTTP status codes as determined by the
-        `register_user()` service:
-            - 201 (CREATED):
-              On successful user registration.
-            - 400 (BAD_REQUEST):
-              If required fields are missing or malformatted.
-              (handled directly in the route).
-            - 409 (CONFLICT):
-              If the registration was unsuccessful.
-              (determined by the service).
+        A JSON response containing the registration status or an error.
+    ---
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                description: Username for registration.
+              password:
+                type: string
+                description: Password for registration.
+    responses:
+      201:
+        description: On successful user registration (CREATED).
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: User successfully registered.
+      400:
+        description: |
+          If required fields are missing or malformatted,
+          handled directly in the route (BAD_REQUEST).
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: Username is required.
+      409:
+        description: |
+          If the registration was unsuccessful, determined by the
+          service (CONFLICT).
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: User already exists.
     """
     data = request.get_json()
     username = data.get('username')
@@ -109,16 +148,56 @@ def login():
     Accepts a JSON request with 'username' and 'password' fields.
 
     Returns:
-        A JSON response with HTTP status codes as determined by the
-        `login_user()` service:
-            - 200 (OK):
-              On successful login.
-            - 400 (BAD_REQUEST):
-              If required fields are missing or malformatted.
-              (handled directly in the route).
-            - 401 (UNAUTHORIZED):
-              If the login was unsuccessful.
-              (determined by the service).
+        A JSON response containing the login status or an error.
+    ---
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                description: Username for login.
+              password:
+                type: string
+                description: Password for login.
+    responses:
+      200:
+        description: On successful login (OK).
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: Login successful.
+      400:
+        description: |
+          If required fields are missing or malformatted,
+          handled directly in the route (BAD_REQUEST).
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: Username is required.
+      401:
+        description: |
+          If the login was unsuccessful, determined by the service
+          (UNAUTHORIZED).
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: Wrong password.
     """
     data = request.get_json()
     username = data.get('username')
