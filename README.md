@@ -11,7 +11,6 @@ A minimal authentication API built with Python and Flask, focused on showcasing 
 ## Key Features
 
 - **Basic Authentication:** Essential user registration and login functionality.
-- **Session Security:** Token-based protection for dummy data.
 - **Input Validation:** Robust input validation to prevent malicious data entry.
 - **Modular Design:** Maintainable and extensible organised codebase.
 - **Clear Documentation:** API endpoint description and Python Docstrings.
@@ -20,25 +19,31 @@ A minimal authentication API built with Python and Flask, focused on showcasing 
 
 ## Quick Start
 
+Before starting, ensure you have Python 3.12 or higher and the latest pip installed on your system.
+
 Run the authentication API locally:
 
-1.  **Clone:**
-	```bash
-	git clone https://github.com/rlacher/flask-secure-api.git
-	```
-2.  **Set up a virtual environment (recommended):**
+1.  **Clone repository:**
+    ```bash
+    git clone https://github.com/rlacher/flask-secure-api.git
+    ```
+2.  **Navigate to project directory:**
+    ```bash
+    cd flask-secure-api
+    ```
+3.  **Set up a virtual environment (recommended):**
     ```bash
     python3 -m venv venv && source venv/bin/activate  # Linux/macOS
     python3 -m venv venv && .\venv\Scripts\activate   # Windows
     ```
-3.  **Install dependencies:**
-	```bash
-	pip install -r requirements.txt
-	```
-4.  **Run the API:**
-	```bash
-	./run.py
-	```
+4.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+5.  **Run the API:**
+    ```bash
+    ./run.py
+    ```
 
 ## API Usage
 
@@ -76,7 +81,7 @@ curl -X POST \
 ```
 Example response: `{"error": "Invalid username: Must be 3-20 alphanumeric characters or underscore"}`
 
-Similarly, providing an invalid password will also result in a `400 Bad Request`. Attempting to register or log in with a non-existent user will yield a `409 Conflict` and `401 Unauthorized error`, respectively.
+Similarly, providing an invalid password will also result in a 400 Bad Request. Attempting to register with a duplicate or log in with a non-existent user will yield a `409 Conflict` and `401 Unauthorized` error, respectively. 
 
 ## Documentation
 
