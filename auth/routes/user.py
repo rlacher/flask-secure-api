@@ -48,7 +48,7 @@ def register():
             - 201 (CREATED):
               On successful user registration.
             - 400 (BAD_REQUEST):
-              If the request lacks required fields
+              If required fields are missing or malformatted.
               (handled directly in the route).
             - 409 (CONFLICT):
               If the registration was unsuccessful.
@@ -114,10 +114,10 @@ def login():
             - 200 (OK):
               On successful login.
             - 400 (BAD_REQUEST):
-              Describes the missing field
+              If required fields are missing or malformatted.
               (handled directly in the route).
             - 401 (UNAUTHORIZED):
-              Indicates the failed login attempt
+              If the login was unsuccessful.
               (determined by the service).
     """
     data = request.get_json()

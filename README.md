@@ -64,6 +64,20 @@ curl -X POST \
 ```
 Example response: `{"message": "Login successful"}`
 
+### Error Handling
+
+The API provides informative error responses for various failure scenarios. For instance, registering with an invalid username returns a `400 Bad Request` with a JSON body detailing the validation error:
+
+```bash
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"username": "invalid$username", "password": "secure_password1"}' \
+  http://localhost:5000/register
+```
+Example response: `{"error": "Invalid username: Must be 3-20 alphanumeric characters or underscore"}`
+
+Similarly, providing an invalid password will also result in a `400 Bad Request`. Attempting to register or log in with a non-existent user will yield a `409 Conflict` and `401 Unauthorized error`, respectively.
+
 ## Documentation
 
 Project documentation is embedded in the code as docstrings. Access it
