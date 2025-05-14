@@ -25,7 +25,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from auth.exceptions import (
     UserAlreadyExistsError,
     UserDoesNotExistError,
-    InvalidPasswordError
+    WrongPasswordError
 )
 
 
@@ -71,7 +71,7 @@ def login_user(
 
     Raises:
         UserDoesNotExistError: If the username does not exist in user_store.
-        InvalidPasswordError: If the password for username does not match.
+        WrongPasswordError: If the password does not match the stored hash.
     """
     hashed_password = user_store.get(username)
 
@@ -79,6 +79,6 @@ def login_user(
         raise UserDoesNotExistError()
 
     if not check_password_hash(hashed_password, password):
-        raise InvalidPasswordError()
+        raise WrongPasswordError()
 
     logger.info(f"User logged in: {username}")

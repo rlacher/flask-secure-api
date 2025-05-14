@@ -25,6 +25,7 @@ import logging
 
 from flask import Flask
 from werkzeug.exceptions import HTTPException
+from flasgger import Swagger
 
 from .routes import user as user_routes
 from .errors import handle_http_exception
@@ -50,6 +51,7 @@ def create_app():
     app = Flask(__name__)
     app.register_blueprint(user_routes.auth_bp)
     app.register_error_handler(HTTPException, handle_http_exception)
+    Swagger(app)
     return app
 
 

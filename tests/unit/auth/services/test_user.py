@@ -24,7 +24,7 @@ from auth import services
 from auth.exceptions import (
     UserAlreadyExistsError,
     UserDoesNotExistError,
-    InvalidPasswordError
+    WrongPasswordError
 )
 
 
@@ -65,7 +65,7 @@ class TestServicesUserLoginUser:
 
     This class contains test cases to verify the behaviour of the
     `login_user` function in different scenarios, including successful
-    login, invalid password, and non-existent user.
+    login, wrong password, and non-existent user.
     """
 
     def test_login_user_success(self):
@@ -80,11 +80,11 @@ class TestServicesUserLoginUser:
                                                'correct_password')
 
     def test_login_user_invalid_password(self):
-        """Tests the login of a user with an invalid password."""
+        """Tests the login of a user with a wrong password."""
         user_store_with_user = {'test_user': 'hashed_password'}
         with patch('auth.services.user.check_password_hash') as mock_check:
             mock_check.return_value = False
-            with raises(InvalidPasswordError):
+            with raises(WrongPasswordError):
                 services.user.login_user('test_user',
                                          'wrong_password',
                                          user_store_with_user)

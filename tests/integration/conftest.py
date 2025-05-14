@@ -11,13 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Provides test fixtures for all integration tests."""
+import pytest
 
-"""
-Implements an in-memory data store for authentication.
+from auth import create_app
+from auth.models import memory_store
 
-This module provides a lightweight storage mechanism using Python's
-built-in data structures to manage user credentials and session
-information.
-"""
 
-users: dict[str, str] = {}
+@pytest.fixture
+def client():
+    """Provides test client."""
+    app = create_app()
+    return app.test_client()
+
+
+@pytest.fixture(autouse=True)
+def reset_user_store():
+    """Ensures clean memory state."""
+    memory_store.users.clear()
+
+
+@pytest.fixture
+def valid_credentials():
+    """Supplies user credentials for registration."""
+    return {
+        "username": "valid_username",
+        "password": "valid_password1"
+    }
