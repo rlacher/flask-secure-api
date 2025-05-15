@@ -3,7 +3,7 @@
 <!-- Badges -->
 [![flake8](https://img.shields.io/github/actions/workflow/status/rlacher/flask-secure-api/lint.yml?label=flake8&style=flat)](https://github.com/rlacher/flask-secure-api/actions/workflows/lint.yml)
 [![pytest](https://img.shields.io/github/actions/workflow/status/rlacher/flask-secure-api/test.yml?label=pytest&style=flat)](https://github.com/rlacher/flask-secure-api/actions/workflows/test.yml)
-[![codecov](https://img.shields.io/codecov/c/github/rlacher/flask-secure-api?style=flat&label=codecov)](https://app.codecov.io/gh/rlacher/flake-secure-api)
+[![codecov](https://codecov.io/gh/rlacher/flask-secure-api/branch/main/graph/badge.svg?token=I2HID42T6X)](https://app.codecov.io/gh/rlacher/flask-secure-api/tree/main)
 [![license](https://img.shields.io/badge/license-Apache%202.0-lightgrey.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 A minimal authentication API built with Python and Flask, focused on showcasing secure API development principles.
