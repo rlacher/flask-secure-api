@@ -237,8 +237,8 @@ def login():
         )
 
     try:
-        user.login_user(validated_username, validated_password)
+        token = user.login_user(validated_username, validated_password)
     except ServiceError as service_error:
         abort(HTTPStatus.UNAUTHORIZED, str(service_error))
 
-    return jsonify({'message': "Login successful"}), HTTPStatus.OK
+    return jsonify({'session_token': token}), HTTPStatus.OK

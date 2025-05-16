@@ -56,13 +56,6 @@ class TestRoutesAuthentication:
             return "auth.services.user.login_user"
         return None
 
-    def get_http_status_success(self, endpoint: str):
-        if endpoint == "/register":
-            return HTTPStatus.CREATED
-        elif endpoint == "/login":
-            return HTTPStatus.OK
-        return None
-
     def get_http_status_failure(self, endpoint: str):
         if endpoint == "/register":
             return HTTPStatus.CONFLICT
@@ -81,32 +74,22 @@ class TestRoutesAuthentication:
         """Fixture to provide user credentials for authentication."""
         return {"username": "new_user", "password": "secure_password1"}
 
-    @pytest.mark.parametrize(
-        "endpoint",
-        [
-            "/register",
-            "/login",
-        ]
-    )
-    def test_service_method_success(
+    def test_register_user_success(
             self,
             mock_abort,
             mock_validate_password,
             mock_validate_username,
             client: FlaskClient,
             user_credentials: dict,
-            endpoint: str,
     ):
         """Tests successful authentication using service methods."""
         mock_validate_username.return_value = user_credentials['username']
         mock_validate_password.return_value = user_credentials['password']
-        service_method_target = self.get_service_method_target(endpoint)
 
-        with patch(service_method_target) as mock_service:
-            response = client.post(endpoint, json=user_credentials)
+        with patch('auth.services.user.register_user') as mock_register_user:
+            response = client.post('/register', json=user_credentials)
 
-            assert response.status_code == \
-                self.get_http_status_success(endpoint)
+            assert response.status_code == HTTPStatus.CREATED
             assert mock_abort.call_count == 0
             mock_validate_username.assert_called_once_with(
                 user_credentials['username']
@@ -114,10 +97,39 @@ class TestRoutesAuthentication:
             mock_validate_password.assert_called_once_with(
                 user_credentials['password']
             )
-            mock_service.assert_called_once_with(
+            mock_register_user.assert_called_once_with(
                 user_credentials["username"],
                 user_credentials["password"]
             )
+
+    @patch('auth.services.user.login_user', return_value="valid_token")
+    def test_login_user_success(
+            self,
+            mock_login_user,
+            mock_abort,
+            mock_validate_password,
+            mock_validate_username,
+            client: FlaskClient,
+            user_credentials: dict,
+    ):
+        """Tests successful authentication using service methods."""
+        mock_validate_username.return_value = user_credentials['username']
+        mock_validate_password.return_value = user_credentials['password']
+
+        response = client.post('/login', json=user_credentials)
+
+        assert response.status_code == HTTPStatus.OK
+        assert mock_abort.call_count == 0
+        mock_validate_username.assert_called_once_with(
+            user_credentials['username']
+        )
+        mock_validate_password.assert_called_once_with(
+            user_credentials['password']
+        )
+        mock_login_user.assert_called_once_with(
+            user_credentials["username"],
+            user_credentials["password"]
+        )
 
     def test_register_user_already_exists(
             self,

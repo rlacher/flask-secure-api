@@ -18,16 +18,22 @@ This module handles user registration, login and other
 authentication-related tasks.
 """
 import logging
+import secrets
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from auth.exceptions import (
+    DuplicateSessionTokenError,
     UserAlreadyExistsError,
     UserDoesNotExistError,
     WrongPasswordError
 )
-from auth.models import user_store
+from auth.models import (
+    session_store,
+    user_store
+)
 
+SESSION_TOKEN_LENGTH_BYTES = 16
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +62,7 @@ def register_user(username: str,
 
 def login_user(
         username: str,
-        password: str):
+        password: str) -> str:
     """Logs in a user with the given username and password.
 
     The password is checked against the stored hash.
@@ -65,10 +71,13 @@ def login_user(
     Args:
         username (str): The username of the user.
         password (str): The password of the user.
-
+    Returns:
+        str: Session token on successful login.
     Raises:
         UserDoesNotExistError: If the username does not exist in user_store.
         WrongPasswordError: If the password does not match the stored hash.
+        RuntimeError: If an unexpected internal error occurs during the login
+        process, such as a failure to create a unique session.
     """
     hashed_password = user_store.get_hashed_password(username)
 
@@ -78,4 +87,13 @@ def login_user(
     if not check_password_hash(hashed_password, password):
         raise WrongPasswordError()
 
-    logger.info(f"User logged in: {username}")
+    try:
+        token = secrets.token_hex(SESSION_TOKEN_LENGTH_BYTES)
+        if not session_store.create_session(username, token):
+            raise DuplicateSessionTokenError()
+        logger.info(f"User '{username}' logged in. Session token: {token}")
+        return token
+    except DuplicateSessionTokenError as exception:
+        raise RuntimeError(
+            "An unexpected error occurred during login."
+        ) from exception

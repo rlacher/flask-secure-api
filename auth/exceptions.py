@@ -46,3 +46,8 @@ class UserDoesNotExistError(ServiceError):
 class WrongPasswordError(ServiceError):
     """Raised when a user's password is wrong."""
     description = "Wrong password"
+
+
+class DuplicateSessionTokenError(ServiceError):
+    """Raised when a generated token already exists."""
+    description = "Failed to generate a unique session token."

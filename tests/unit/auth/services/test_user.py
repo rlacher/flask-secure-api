@@ -115,5 +115,27 @@ class TestServicesUserLoginUser:
     def test_login_user_non_existent_user(self):
         """Tests the login of a non-existent user."""
         with raises(UserDoesNotExistError):
-            services.user.login_user('non_existent_user',
-                                     'password')
+            services.user.login_user(
+                'non_existent_user',
+                'password'
+            )
+
+    @patch('auth.services.user.user_store.get_hashed_password')
+    @patch('auth.services.user.check_password_hash')
+    @patch('auth.services.user.session_store.create_session')
+    def test_login_user_session_creation_fails(
+        self,
+        mock_create_session,
+        mock_check_password_hash,
+        mock_get_hashed_password
+    ):
+        """Tests login_user raises RuntimeError on session fail."""
+        mock_get_hashed_password.return_value = "hashed_password"
+        mock_check_password_hash.return_value = True
+        mock_create_session.return_value = False
+
+        with raises(RuntimeError):
+            services.user.login_user(
+                'valid_user',
+                'valid_password'
+            )
