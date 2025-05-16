@@ -36,28 +36,37 @@ class TestServicesUserRegisterUser:
     successful registration and handling of duplicate usernames.
     """
 
-    def test_register_user_success(self):
+    @patch('auth.services.user.user_store.add_user', return_value=True)
+    @patch(
+        'auth.services.user.generate_password_hash',
+        return_value="hashed_password"
+    )
+    def test_register_user_success(
+        self,
+        mock_generate_password_hash,
+        mock_add_user
+    ):
         """Tests the successful registration of a new user."""
-        empty_user_store = {}
-        with patch(
-            'auth.services.user.generate_password_hash'
-        ) as mock_generate_password_hash:
-            hashed_password = "hashed_password"
-            mock_generate_password_hash.return_value = hashed_password
+        username = "new_user"
+        password = "valid_password1"
+        services.user.register_user(username,
+                                    password)
 
-            services.user.register_user('new_user',
-                                        'password',
-                                        empty_user_store)
-            assert len(empty_user_store) == 1
-            assert empty_user_store.get('new_user') == hashed_password
+        mock_generate_password_hash.assert_called_once_with(
+            password
+        )
+        mock_add_user.assert_called_once_with(
+            username,
+            "hashed_password"
+        )
 
-    def test_register_user_duplicate_username(self):
+    @patch('auth.services.user.user_store.add_user')
+    def test_register_user_duplicate_username(self, mock_add_user):
         """Tests the registration of a user with an existing username."""
-        user_store_with_user = {'existing_user': 'hashed_password'}
+        mock_add_user.return_value = False
         with raises(UserAlreadyExistsError):
             services.user.register_user('existing_user',
-                                        'password',
-                                        user_store_with_user)
+                                        'password')
 
 
 class TestServicesUserLoginUser:
@@ -70,31 +79,41 @@ class TestServicesUserLoginUser:
 
     def test_login_user_success(self):
         """Tests the successful login of a user."""
-        user_store_with_user = {'test_user': 'hashed_password'}
-        with patch('auth.services.user.check_password_hash') as mock_check:
-            mock_check.return_value = True
+        with (
+            patch('auth.services.user.user_store.get_hashed_password')
+            as mock_get_hashed_password,
+            patch('auth.services.user.check_password_hash')
+            as mock_check_password_hash
+        ):
+            mock_get_hashed_password.return_value = "hashed_password"
+            mock_check_password_hash.return_value = True
             services.user.login_user('test_user',
-                                     'correct_password',
-                                     user_store_with_user)
-            mock_check.assert_called_once_with('hashed_password',
-                                               'correct_password')
+                                     'correct_password')
+            mock_check_password_hash.assert_called_once_with(
+                'hashed_password',
+                'correct_password'
+            )
 
     def test_login_user_invalid_password(self):
         """Tests the login of a user with a wrong password."""
-        user_store_with_user = {'test_user': 'hashed_password'}
-        with patch('auth.services.user.check_password_hash') as mock_check:
-            mock_check.return_value = False
+        with (
+            patch('auth.services.user.user_store.get_hashed_password')
+            as mock_get_hashed_password,
+            patch('auth.services.user.check_password_hash')
+            as mock_check_password_hash
+        ):
+            mock_get_hashed_password.return_value = "hashed_password"
+            mock_check_password_hash.return_value = False
             with raises(WrongPasswordError):
                 services.user.login_user('test_user',
-                                         'wrong_password',
-                                         user_store_with_user)
-            mock_check.assert_called_once_with('hashed_password',
-                                               'wrong_password')
+                                         'wrong_password')
+            mock_check_password_hash.assert_called_once_with(
+                'hashed_password',
+                'wrong_password'
+            )
 
     def test_login_user_non_existent_user(self):
         """Tests the login of a non-existent user."""
-        empty_user_store = {}
         with raises(UserDoesNotExistError):
             services.user.login_user('non_existent_user',
-                                     'password',
-                                     empty_user_store)
+                                     'password')

@@ -15,7 +15,7 @@
 import pytest
 
 from auth import create_app
-from auth.models import memory_store
+from auth.models import user_store
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ def client():
 @pytest.fixture(autouse=True)
 def reset_user_store():
     """Ensures clean memory state."""
-    memory_store.users.clear()
+    user_store.clear_users()
 
 
 @pytest.fixture

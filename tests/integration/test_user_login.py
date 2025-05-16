@@ -17,9 +17,10 @@ from http import HTTPStatus
 import pytest
 from flask.testing import FlaskClient
 from unittest.mock import patch, ANY, MagicMock
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from auth import services
-from auth.models import memory_store
+from auth.models import user_store
 from auth.validators import (
     validate_username,
     validate_password
@@ -33,8 +34,19 @@ class TestUserLogin:
     """
 
     @pytest.fixture(autouse=True)
-    def populate_user_store(self):
-        memory_store.users["valid_username"] = "unused_password_hash"
+    def populate_user_store(self, valid_credentials):
+        hashed_password = generate_password_hash(
+            valid_credentials['password']
+        )
+        is_added = user_store.add_user(
+            valid_credentials['username'],
+            hashed_password
+        )
+        if not is_added:
+            pytest.fail(
+                "Failed to add user to user store during setup: " +
+                f"{valid_credentials['username']}"
+            )
 
     def test_user_login_success(
         self,
@@ -43,8 +55,10 @@ class TestUserLogin:
     ):
         """Tests user login with valid credentials."""
         spied_login_user = MagicMock(wraps=services.user.login_user)
-        mock_check_password_hash = MagicMock()
-        mock_check_password_hash.return_value = True
+        spied_get_hashed_password = MagicMock(
+            wraps=user_store.get_hashed_password
+        )
+        spied_check_password_hash = MagicMock(wraps=check_password_hash)
 
         with (
             patch(
@@ -52,8 +66,12 @@ class TestUserLogin:
                 spied_login_user
             ),
             patch(
+                'auth.services.user.user_store.get_hashed_password',
+                spied_get_hashed_password
+            ),
+            patch(
                 'auth.services.user.check_password_hash',
-                mock_check_password_hash
+                spied_check_password_hash
             )
         ):
             response = client.post(
@@ -61,14 +79,16 @@ class TestUserLogin:
             )
 
             assert response.status_code == HTTPStatus.OK
-            mock_check_password_hash.assert_called_once_with(
-                memory_store.users[valid_credentials['username']],
-                valid_credentials['password']
-            )
             spied_login_user.assert_called_once_with(
                 valid_credentials['username'],
-                valid_credentials['password'],
-                ANY
+                valid_credentials['password']
+            )
+            spied_get_hashed_password.assert_called_once_with(
+                valid_credentials['username']
+            )
+            spied_check_password_hash.assert_called_once_with(
+                ANY,
+                valid_credentials['password']
             )
 
     def test_user_login_invalid_username(
@@ -125,11 +145,11 @@ class TestUserLogin:
                 spied_validate_password
             )
         ):
-            reponse = client.post(
+            response = client.post(
                 "/login", json=invalid_password_credentials
             )
 
-            assert reponse.status_code == HTTPStatus.BAD_REQUEST
+            assert response.status_code == HTTPStatus.BAD_REQUEST
             spied_validate_password.assert_called_once_with(
                 invalid_password_credentials['password']
             )
@@ -150,13 +170,12 @@ class TestUserLogin:
             'auth.services.user.login_user',
             spied_login_user
         ):
-            reponse = client.post(
+            response = client.post(
                 "/login", json=unknown_user_credentials
             )
 
-            assert reponse.status_code == HTTPStatus.UNAUTHORIZED
+            assert response.status_code == HTTPStatus.UNAUTHORIZED
             spied_login_user.assert_called_once_with(
                 unknown_user_credentials['username'],
-                unknown_user_credentials['password'],
-                ANY
+                unknown_user_credentials['password']
             )

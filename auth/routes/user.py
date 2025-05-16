@@ -23,7 +23,6 @@ import logging
 from flask import abort, Blueprint, jsonify, request
 
 from auth.services import user
-from auth.models.memory_store import users as user_store
 from auth.exceptions import ServiceError
 from auth.validators import (
     validate_username,
@@ -132,7 +131,7 @@ def register():
         )
 
     try:
-        user.register_user(validated_username, validated_password, user_store)
+        user.register_user(validated_username, validated_password)
     except ServiceError as service_error:
         abort(HTTPStatus.CONFLICT, str(service_error))
 
@@ -238,7 +237,7 @@ def login():
         )
 
     try:
-        user.login_user(validated_username, validated_password, user_store)
+        user.login_user(validated_username, validated_password)
     except ServiceError as service_error:
         abort(HTTPStatus.UNAUTHORIZED, str(service_error))
 

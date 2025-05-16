@@ -27,7 +27,7 @@ from http import HTTPStatus
 from flask import Flask
 from flask.testing import FlaskClient
 import pytest
-from unittest.mock import patch, ANY
+from unittest.mock import patch
 from werkzeug.exceptions import BadRequest, Conflict, Unauthorized
 
 from auth import routes
@@ -116,8 +116,7 @@ class TestRoutesAuthentication:
             )
             mock_service.assert_called_once_with(
                 user_credentials["username"],
-                user_credentials["password"],
-                ANY
+                user_credentials["password"]
             )
 
     def test_register_user_already_exists(
@@ -143,8 +142,7 @@ class TestRoutesAuthentication:
 
             mock_register_user.assert_called_once_with(
                 user_credentials["username"],
-                user_credentials["password"],
-                ANY,
+                user_credentials["password"]
             )
             assert mock_abort.call_count == 1
             mock_validate_username.assert_called_once_with(
@@ -187,8 +185,7 @@ class TestRoutesAuthentication:
             )
             mock_login_user.assert_called_once_with(
                 user_credentials["username"],
-                user_credentials["password"],
-                ANY,
+                user_credentials["password"]
             )
             assert mock_abort.call_count == 1
             assert response.status_code == HTTPStatus.UNAUTHORIZED

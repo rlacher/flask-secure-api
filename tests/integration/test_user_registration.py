@@ -15,7 +15,7 @@
 from http import HTTPStatus
 
 from flask.testing import FlaskClient
-from unittest.mock import patch, ANY, MagicMock
+from unittest.mock import patch, MagicMock
 
 from auth import services
 from auth.validators import (
@@ -44,8 +44,7 @@ class TestUserRegistration:
             assert response.status_code == HTTPStatus.CREATED
             spied_register_user.assert_called_once_with(
                 valid_credentials['username'],
-                valid_credentials['password'],
-                ANY
+                valid_credentials['password']
             )
 
     def test_user_registration_invalid_username(

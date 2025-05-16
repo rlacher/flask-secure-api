@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Encapsulates core authentication services.
 
@@ -27,53 +26,51 @@ from auth.exceptions import (
     UserDoesNotExistError,
     WrongPasswordError
 )
+from auth.models import user_store
 
 
 logger = logging.getLogger(__name__)
 
 
 def register_user(username: str,
-                  password: str,
-                  user_store: dict):
+                  password: str):
     """Registers a new user with the given username and password.
 
     The password is hashed before storage. The username must be unique.
-    The user is stored in a dictionary.
+    Uses the data layer to store the new user.
 
     Args:
         username (str): The username of the user.
         password (str): The password of the user.
-        user_store (dict): The dictionary to store user data.
 
     Raises:
         UserAlreadyExistsError: If user_store already contains username.
     """
-    if username in user_store:
+    hashed_password = generate_password_hash(password)
+
+    if not user_store.add_user(username, hashed_password):
         raise UserAlreadyExistsError()
 
-    user_store[username] = generate_password_hash(password)
     logger.info(f"User registered: {username}")
 
 
 def login_user(
         username: str,
-        password: str,
-        user_store: dict):
+        password: str):
     """Logs in a user with the given username and password.
 
     The password is checked against the stored hash.
-    The user must exist in the dictionary.
+    Uses the data layer to retrieve the user's password for authentication.
 
     Args:
         username (str): The username of the user.
         password (str): The password of the user.
-        user_store (dict): The dictionary to access user data.
 
     Raises:
         UserDoesNotExistError: If the username does not exist in user_store.
         WrongPasswordError: If the password does not match the stored hash.
     """
-    hashed_password = user_store.get(username)
+    hashed_password = user_store.get_hashed_password(username)
 
     if not hashed_password:
         raise UserDoesNotExistError()
