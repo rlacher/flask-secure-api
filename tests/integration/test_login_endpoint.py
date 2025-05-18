@@ -20,7 +20,10 @@ from unittest.mock import patch, ANY, MagicMock
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from auth import services
-from auth.models import user_store
+from auth.models import (
+    session_store,
+    user_store
+)
 from auth.validators import (
     validate_username,
     validate_password
@@ -59,6 +62,7 @@ class TestUserLogin:
             wraps=user_store.get_hashed_password
         )
         spied_check_password_hash = MagicMock(wraps=check_password_hash)
+        spied_create_session = MagicMock(wraps=session_store.create_session)
 
         with (
             patch(
@@ -72,6 +76,10 @@ class TestUserLogin:
             patch(
                 'auth.services.user.check_password_hash',
                 spied_check_password_hash
+            ),
+            patch(
+                'auth.services.user.session_store.create_session',
+                spied_create_session
             )
         ):
             response = client.post(
@@ -79,6 +87,7 @@ class TestUserLogin:
             )
 
             assert response.status_code == HTTPStatus.OK
+            assert "session_token" in response.json
             spied_login_user.assert_called_once_with(
                 valid_credentials['username'],
                 valid_credentials['password']
@@ -89,6 +98,10 @@ class TestUserLogin:
             spied_check_password_hash.assert_called_once_with(
                 ANY,
                 valid_credentials['password']
+            )
+            spied_create_session.assert_called_once_with(
+                valid_credentials['username'],
+                ANY
             )
 
     def test_user_login_invalid_username(
@@ -113,11 +126,11 @@ class TestUserLogin:
                 spied_validate_username
             )
         ):
-            reponse = client.post(
+            response = client.post(
                 "/login", json=invalid_username_credentials
             )
 
-            assert reponse.status_code == HTTPStatus.BAD_REQUEST
+            assert response.status_code == HTTPStatus.BAD_REQUEST
             spied_validate_username.assert_called_once_with(
                 invalid_username_credentials['username']
             )

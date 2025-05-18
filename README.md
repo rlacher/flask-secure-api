@@ -11,6 +11,7 @@ A minimal authentication API built with Python and Flask, focused on showcasing 
 ## Key Features
 
 - **Basic Authentication:** Essential user registration and login functionality.
+- **Session Security:** Token-based protection for dummy data.
 - **Input Validation:** Robust input validation to prevent malicious data entry.
 - **Modular Design:** Maintainable and extensible organised codebase.
 - **Clear Documentation:** API endpoint specification and Python docstrings.
@@ -67,7 +68,16 @@ curl -X POST \
   -d '{"username": "new_user", "password": "secure_password1"}' \
   http://localhost:5000/login
 ```
-Example response: `{"message": "Login successful"}`
+Example response: `{"session_token": "5d59516c29d8ad8443c1c2e6d3da51ac"}`.
+
+### Accessing protected data
+
+```bash
+curl -X GET \
+  -H "Authorization: Bearer 5d59516c29d8ad8443c1c2e6d3da51ac" \
+  http://localhost:5000/protected
+```
+Example response: `{"message": "Hello new_user. Here is your protected data."}`.
 
 ### Error Handling
 
@@ -81,7 +91,21 @@ curl -X POST \
 ```
 Example response: `{"error": "Invalid username: Must be 3-20 alphanumeric characters or underscore"}`
 
-Similarly, providing an invalid password will also result in a `400 Bad Request`. Attempting to register with a duplicate or log in with a non-existent user will yield a `409 Conflict` and `401 Unauthorized` error, respectively.
+This table summarises the implemented fault conditions.
+
+| Endpoint    | Fault Condition            | HTTP Status Code   |
+| :---------- | :------------------------- | :----------------- |
+| /register   | Missing username/password  | `400 Bad Request`  |
+| /register   | Invalid credentials        | `400 Bad Request`  |
+| /register   | Duplicate username         | `409 Conflict`     |
+| /login      | Missing username/password  | `400 Bad Request`  |
+| /login      | Invalid credentials        | `400 Bad Request`  |
+| /login      | Unknown username           | `401 Unauthorized` |
+| /login      | Incorrect password         | `401 Unauthorized` |
+| /protected  | Missing/invalid token      | `400 Bad Request`  |
+| /protected  | Session not found          | `401 Unauthorized` |
+
+Flask handles standard errors (e.g. incorrect request method) automatically. These are omitted here.
 
 ## Documentation
 
@@ -116,7 +140,7 @@ For interactive exploration using the Swagger UI:
 
 ## Test
 
-This project includes automated unit and integration tests to guarantee API integrity.
+This project is thoroughly unit and integration tested, with a test suite comprising more than 100 automated test cases to guarantee API integrity.
 
 ### Execution
 

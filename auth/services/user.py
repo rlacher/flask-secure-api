@@ -24,6 +24,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from auth.exceptions import (
     DuplicateSessionTokenError,
+    SessionNotFoundError,
     UserAlreadyExistsError,
     UserDoesNotExistError,
     WrongPasswordError
@@ -97,3 +98,22 @@ def login_user(
         raise RuntimeError(
             "An unexpected error occurred during login."
         ) from exception
+
+
+def get_protected_data(token: str) -> str:
+    """Retrieve protected data for a user with a valid session token.
+
+    Args:
+        token (str): The session token for authenticated access.
+    Returns:
+        str: The protected resource.
+    Raises:
+        SessionNotFoundError: If the token is not associated with
+        any active session.
+    """
+    username = session_store.get_username_from_token(token)
+    if not username:
+        raise SessionNotFoundError()
+
+    protected_message = f"Hello {username}. Here is your protected data."
+    return protected_message

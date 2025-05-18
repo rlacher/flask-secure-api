@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Unit tests for the user services in the authentication package.
 
-"""Unit tests for the `user` services in the authentication package.
-
-Tests the user registration and login functionality, verifying correct
+Tests user registration, login and data access, verifying correct
 responses for both successful and error scenarios.
 """
 from unittest.mock import patch
@@ -22,13 +21,14 @@ from pytest import raises
 
 from auth import services
 from auth.exceptions import (
+    SessionNotFoundError,
     UserAlreadyExistsError,
     UserDoesNotExistError,
     WrongPasswordError
 )
 
 
-class TestServicesUserRegisterUser:
+class TestRegisterUser:
     """Tests the user registration functionality.
 
     This class contains test cases to verify the behaviour of the
@@ -69,7 +69,7 @@ class TestServicesUserRegisterUser:
                                         'password')
 
 
-class TestServicesUserLoginUser:
+class TestLoginUser:
     """Tests the user login functionality.
 
     This class contains test cases to verify the behaviour of the
@@ -139,3 +139,27 @@ class TestServicesUserLoginUser:
                 'valid_user',
                 'valid_password'
             )
+
+
+class TestGetProtectedData():
+    """Tests the access to protected data.
+
+    This class verifies get_protected_data() retrieves data for valid
+    tokens and raises SessionNotFoundError for invalid ones.
+    """
+
+    @patch('auth.services.user.session_store.get_username_from_token')
+    def test_get_protected_data_valid_token(self, mock_get_username):
+        mock_get_username.return_value = "test_user"
+        result = services.user.get_protected_data("token123")
+        assert "Hello" in result and "test_user" in result
+        mock_get_username.assert_called_once_with("token123")
+
+    @patch(
+        'auth.services.user.session_store.get_username_from_token',
+        return_value=None
+    )
+    def test_get_protected_data_invalid_token(self, mock_get_username):
+        with raises(SessionNotFoundError):
+            services.user.get_protected_data("invalid_token")
+        mock_get_username.assert_called_once_with("invalid_token")

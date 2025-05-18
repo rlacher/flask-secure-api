@@ -11,117 +11,166 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Unit tests for the validators module."""
+"""Unit tests for the validators module.
 
-from re import error as re_error
-
+Tests exercise public functions, implicitly verifying regex validation
+via non-mocked _validate_regex() calls.
+"""
 import pytest
-from unittest.mock import patch
 
 from auth.validators import (
-    validate_regex,
     validate_username,
-    validate_password
+    validate_password,
+    validate_token
 )
 
 
-class TestValidateRegex:
-    """Unit tests for the validate_regex function."""
-
-    @pytest.mark.parametrize("text, regex, expected", [
-        ("abc", r"^[a-z]+$", "abc"),
-        ("123", r"^\d+$", "123"),
-        ("a_b-c", r"^[a-zA-Z0-9_-]+$", "a_b-c"),
-        ("abcd", r"[a-z]{4}", "abcd")
-    ])
-    def test_validate_regex_valid_text(
-        self, text, regex, expected
-    ):
-        """Test with valid text and regex."""
-        assert validate_regex(text, regex) == expected
-
-    def test_validate_regex_invalid_text(self):
-        """Test with text that does not match the regex."""
-        with pytest.raises(ValueError):
-            validate_regex("123", r"^[a-z]+$", info="lowercase letters")
-
-        with pytest.raises(ValueError):
-            validate_regex("abc", r"^\d+$")
-
-    def test_validate_regex_invalid_regex(self):
-        """Test with an invalid regular expression."""
-        with pytest.raises(re_error):
-            invalid_regex = r'***'
-            validate_regex("abc", invalid_regex)
-
-    def test_validate_regex_non_string_text(self):
-        """Test with text that is not a string."""
-        with pytest.raises(
-            TypeError,
-            match="Must be a string, but got int"
-        ):
-            validate_regex(123, r"^[a-z]+$")
-
-        with pytest.raises(
-            TypeError,
-            match="Must be a string, but got list"
-        ):
-            validate_regex(["a", "b"], r"^[a-z]+$")
-
-
 class TestValidateUsername:
-    """Unit tests for the validate_username function."""
+    """Tests the validate_username function."""
 
-    @patch('auth.validators.validate_regex')
-    def test_validate_username_success(
-        self, mock_validate_regex
-    ):
-        """Tests a successful username validation."""
-        mock_validate_regex.return_value = "validated_username"
-        assert validate_username("username") == "validated_username"
+    @pytest.mark.parametrize(
+        "valid_username",
+        [
+            "valid_user_123",
+            "usernameusernameuser",  # 20 chars (maximum length)
+            "usr"  # 3 chars (minimum length)
+        ],
+    )
+    def test_valid_username(self, valid_username):
+        """Returns input for valid usernames."""
+        assert validate_username(valid_username) == valid_username
 
-    @patch('auth.validators.validate_regex',
-           side_effect=ValueError())
-    def test_validate_username_invalid_username(
-        self, mock_validate_regex
-    ):
-        """Test an unsuccessful username validation."""
+    @pytest.mark.parametrize(
+        "invalid_username",
+        [
+            "invalid-user",  # Hyphen
+            "user!with$symbols",  # Symbols
+            "very_long_username_exceeding_limit",  # Length > 20
+            "ab",  # Length < 3
+            "",  # Empty string
+        ],
+    )
+    def test_invalid_username(self, invalid_username):
+        """Raises ValueError for invalid usernames."""
         with pytest.raises(ValueError):
-            validate_username("invalid_username_for_mock")
+            validate_username(invalid_username)
 
-    @patch('auth.validators.validate_regex',
-           side_effect=re_error("Failing regex compilation (for testing)"))
-    def test_validate_username_invalid_regex(
-        self, mock_validate_regex
-    ):
-        """Tests a regex compilation failure."""
-        with pytest.raises(RuntimeError):
-            validate_username("username")
+    @pytest.mark.parametrize(
+        "non_string_username",
+        [
+            None,
+            123,
+            4.56,
+            True
+        ],
+    )
+    def test_username_non_string(self, non_string_username):
+        """Raises TypeError when username is not a string."""
+        with pytest.raises(TypeError):
+            validate_username(non_string_username)
 
 
 class TestValidatePassword:
-    """Unit tests for the validate_password function."""
+    """Tests the validate_password function."""
 
-    @patch('auth.validators.validate_regex')
-    def test_validate_password_success(self, mock_validate_regex):
-        """Tests a successful password validation."""
-        mock_validate_regex.return_value = "validated_password"
-        assert validate_password("password") == "validated_password"
+    @pytest.mark.parametrize(
+        "valid_password",
+        [
+            "password_1",
+            "Password!2",
+            "passworD3%",
+            "PASSWORd^4",
+            "5PASSword&",
+            "*paSSwoRD6",
+            "pass?-7WORD",
+            "password#8",
+            "1234$abcd",
+            "12e456-8",  # 8 chars (minimum length)
+            "Passw0rd-Passw0rd-Passw0rd-Passw0rd-Passw0rd-Passw0rd-" +
+            "Passw0rd-P"  # 64 chars (maximum length)
+        ],
+    )
+    def test_valid_password(self, valid_password):
+        """Returns input for valid passwords."""
+        assert validate_password(valid_password) == valid_password
 
-    @patch('auth.validators.validate_regex',
-           side_effect=ValueError())
-    def test_validate_password_invalid_password(
-        self, mock_validate_regex
-    ):
-        """Test an unsuccessful password validation."""
+    @pytest.mark.parametrize(
+        "invalid_password",
+        [
+            "onlyletters",  # Only letters
+            "onlylettersanddigit1",  # Only letters and digits
+            "ONLYUPPERCASE",  # Only Uppercase
+            "12345678",  # Only numbers
+            "--------",  # Only symbols
+            "invalid(specialchar",  # Prohibited special character
+            "sh0rt-",  # Too short
+            "too1long_too1long_too1long_too1long_too1long_too1long_" +
+            "too1long_too1long",  # Too long
+        ],
+    )
+    def test_invalid_password(self, invalid_password):
+        """Raises ValueError for invalid passwords."""
         with pytest.raises(ValueError):
-            validate_password("invalid_password_for_mock")
+            validate_password(invalid_password)
 
-    @patch('auth.validators.validate_regex',
-           side_effect=re_error("Failing regex compilation (for testing)"))
-    def test_validate_password_invalid_regex(
-        self, mock_validate_regex
-    ):
-        """Tests a regex compilation failure."""
-        with pytest.raises(RuntimeError):
-            validate_password("password")
+    @pytest.mark.parametrize(
+        "non_string_password",
+        [
+            None,
+            123,
+            4.56,
+            True
+        ],
+    )
+    def test_password_non_string(self, non_string_password):
+        """Raises TypeError when password is not a string."""
+        with pytest.raises(TypeError):
+            validate_password(non_string_password)
+
+
+class TestValidateToken:
+    """Tests the validate_token function."""
+
+    @pytest.mark.parametrize(
+        "valid_token",
+        [
+            "00000000000000000000000000000000",
+            "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
+            "abcdef0123456789fedcba9876543210",
+            "99887766554433221100aabbccddeeff",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "1234567890abcdef1234567890abcdeF",
+        ],
+    )
+    def test_valid_token(self, valid_token):
+        """Returns input for valid tokens."""
+        assert validate_token(valid_token) == valid_token
+
+    @pytest.mark.parametrize(
+        "invalid_token",
+        [
+            "",  # Empty string
+            "1234567890abcdef1234567890abcd",  # Too short (31 chars)
+            "1234567890abcdef1234567890abcdefg",  # Too long (33 chars)
+            "invalid_chars_here!!!!_____",  # Invalid characters
+        ],
+    )
+    def test_invalid_token(self, invalid_token):
+        """Raises ValueError for invalid tokens."""
+        with pytest.raises(ValueError):
+            validate_token(invalid_token)
+
+    @pytest.mark.parametrize(
+        "non_string_token",
+        [
+            None,
+            123,
+            4.56,
+            True
+        ],
+    )
+    def test_token_non_string(self, non_string_token):
+        """Raises TypeError when token is not a string."""
+        with pytest.raises(TypeError):
+            validate_token(non_string_token)

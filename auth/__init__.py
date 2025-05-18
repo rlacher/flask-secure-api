@@ -50,6 +50,7 @@ def create_app():
     """Create and configure the Flask application."""
     app = Flask(__name__)
     app.register_blueprint(user_routes.auth_bp)
+    app.register_blueprint(user_routes.protected_bp)
     app.register_error_handler(HTTPException, handle_http_exception)
     Swagger(app)
     return app

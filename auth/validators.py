@@ -14,28 +14,38 @@
 """Validators for user input."""
 import logging
 from re import (
-    error as re_error,
-    compile
+    compile,
+    Pattern
 )
 from typing import Final
+
+USERNAME_PATTERN: Final[Pattern] = compile(
+    r'^[a-zA-Z0-9_]{3,20}$'
+)
+PASSWORD_PATTERN: Final[Pattern] = compile(
+    r'^(?=.*[a-zA-Z])'  # At least one letter
+    r'(?=.*[0-9])'  # At least one digit
+    r'(?=.*[!@#$%^&*?_-])'  # At least one special char
+    r'[a-zA-Z0-9!@#$%^&*?_-]{8,64}$'  # 8-64 total chars
+)
+TOKEN_PATTERN: Final[Pattern] = compile(
+    r'^[0-9a-fA-F]{32}$'
+)
 
 logger = logging.getLogger(__name__)
 
 
-def validate_regex(input: str, regex: str, info: str = None) -> str:
+def _validate_regex(input: str, pattern: Pattern, error_info: str) -> str:
     """Validates input against a regular expression.
 
     Args:
         input (str): The input to validate.
-        regex (str): The regular expression.
-        info (str): Description of the expected pattern (optional).
-
+        pattern (Pattern): The compiled regular expression pattern to apply.
+        info (str): Human-readable description of the expected input format.
     Returns:
         The validated input.
-
     Raises:
         TypeError: If input is not a string.
-        re.error: If regex is not a valid regular expression.
         ValueError: If input does not match the pattern.
     """
     if not isinstance(input, str):
@@ -43,94 +53,68 @@ def validate_regex(input: str, regex: str, info: str = None) -> str:
             f"Must be a string, but got {type(input).__name__}"
         )
 
-    # Relies on built-in caching
-    compiled_pattern = compile(regex)
+    if not pattern.fullmatch(input):
+        raise ValueError(f"Must be {error_info}")
 
-    if not compiled_pattern.fullmatch(input):
-        value_error_message = "Invalid input"
-        if info:
-            value_error_message = f"Must be {info}"
-        raise ValueError(value_error_message)
-
-    logger.debug(f"input matches pattern: {input}")
+    logger.debug(f"Input matches pattern: {input}")
     return input
 
 
 def validate_username(username: str) -> str:
     """Validates a username.
 
-    Internally delegates to validate_regex.
+    Internally delegates to _validate_regex().
 
     Args:
         username (str): The username to validate.
-
     Returns:
         The validated username.
-
     Raises:
         TypeError: If the username is not a string.
-        ValueError: If the username does not match the required pattern.
-        (Implied from validate_regex)
+        ValueError: If the username is invalid.
     """
-    USERNAME_REGEX: Final[str] = r'^[a-zA-Z0-9_]{3,20}$'
-    USERNAME_INFO: Final[str] = "3-20 alphanumeric characters or underscore"
-
-    try:
-        validated_username = validate_regex(
-            username,
-            USERNAME_REGEX,
-            USERNAME_INFO
-        )
-    except re_error as exception:
-        logger.critical(
-            f"Failed to compile regular expression: {USERNAME_REGEX}"
-        )
-        raise RuntimeError(
-            "Internally-provided regular expression failed to compile."
-        ) from exception
-
-    return validated_username
+    return _validate_regex(
+        username,
+        USERNAME_PATTERN,
+        "3-20 alphanumeric characters or underscore"
+    )
 
 
 def validate_password(password: str) -> str:
     """Validates a password.
 
-    Internally delegates to validate_regex.
+    Internally delegates to _validate_regex().
 
     Args:
         password (str): The password to validate.
-
     Returns:
         The validated password.
-
     Raises:
         TypeError: If the password is not a string.
-        ValueError: If the password does not match the required pattern.
-        (Implied from validate_regex)
+        ValueError: If the password is invalid.
     """
-    PASSWORD_REGEX: Final[str] = (
-        r'^(?=.*[a-zA-Z])'  # At least one letter
-        r'(?=.*[0-9])'  # At least one digit
-        r'(?=.*[!@#$%^&*?_-])'  # At least one special char
-        r'[a-zA-Z0-9!@#$%^&*?_-]{8,64}$'  # 8-64 total chars
-    )
-    PASSWORD_INFO: Final[str] = (
-        "8-64 characters, include a letter, digit, "
-        "and special character (!@#$%^&*?_-)"
+    return _validate_regex(
+        password,
+        PASSWORD_PATTERN,
+        "8-64 characters, including letter, digit, special (!@#$%^&*?_-)"
     )
 
-    try:
-        validated_password = validate_regex(
-            password,
-            PASSWORD_REGEX,
-            PASSWORD_INFO
-        )
-    except re_error as exception:
-        logger.critical(
-            f"Failed to compile regular expression: {PASSWORD_REGEX}"
-        )
-        raise RuntimeError(
-            "Internally-provided regular expression failed to compile."
-        ) from exception
 
-    return validated_password
+def validate_token(token: str) -> str:
+    """Validates a token.
+
+    Internally delegates to _validate_regex().
+
+    Args:
+        token (str): The token to validate.
+    Returns:
+        The validated token.
+    Raises:
+        TypeError: If the token is not a string.
+        ValueError: If the token is invalid.
+    """
+    return _validate_regex(
+        token,
+        TOKEN_PATTERN,
+        "32-character hexadecimal string"
+    )

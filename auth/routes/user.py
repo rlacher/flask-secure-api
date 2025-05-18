@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Sets up API route handlers for user authentication.
+Authentication route handlers for user registration, login, and
+protected data access.
 
-This module defines the Flask routes for user registration and login,
-providing the primary authentication interface for the API.
+This module provides the primary authentication interface for the API.
 """
 from http import HTTPStatus
 import logging
@@ -26,12 +26,14 @@ from auth.services import user
 from auth.exceptions import ServiceError
 from auth.validators import (
     validate_username,
-    validate_password
+    validate_password,
+    validate_token
 )
 
 
 logger = logging.getLogger(__name__)
 auth_bp = Blueprint('auth', __name__)
+protected_bp = Blueprint('protected', __name__)
 
 
 @auth_bp.route('/register', methods=['POST'])
@@ -55,10 +57,10 @@ def register():
                 description: Username for registration.
               password:
                 type: string
-                description: Password for registration.
+                description: "Password for registration."
     responses:
       201:
-        description: On successful user registration (CREATED).
+        description: Successful user registration.
         content:
           application/json:
             schema:
@@ -66,11 +68,9 @@ def register():
               properties:
                 message:
                   type: string
-                  example: User successfully registered.
+                  example: "User successfully registered."
       400:
-        description: |
-          If required fields are missing or malformatted,
-          handled directly in the route (BAD_REQUEST).
+        description: Missing or invalid input.
         content:
           application/json:
             schema:
@@ -78,11 +78,9 @@ def register():
               properties:
                 error:
                   type: string
-                  example: Username is required.
+                  example: "Username is required."
       409:
-        description: |
-          If the registration was unsuccessful, determined by the
-          service (CONFLICT).
+        description: Registration failed, determined by the service.
         content:
           application/json:
             schema:
@@ -90,7 +88,7 @@ def register():
               properties:
                 error:
                   type: string
-                  example: User already exists.
+                  example: "User already exists."
     """
     data = request.get_json()
     username = data.get('username')
@@ -106,28 +104,18 @@ def register():
 
     try:
         validated_username = validate_username(username)
-    except TypeError as type_error:
+    except (TypeError, ValueError) as validation_error:
         abort(
             HTTPStatus.BAD_REQUEST,
-            f'Invalid username: {type_error.args[0]}'
-        )
-    except ValueError as value_error:
-        abort(
-            HTTPStatus.BAD_REQUEST,
-            f'Invalid username: {value_error.args[0]}'
+            f'Invalid username: {validation_error.args[0]}'
         )
 
     try:
         validated_password = validate_password(password)
-    except TypeError as type_error:
+    except (TypeError, ValueError) as validation_error:
         abort(
             HTTPStatus.BAD_REQUEST,
-            f'Invalid password: {type_error.args[0]}'
-        )
-    except ValueError as value_error:
-        abort(
-            HTTPStatus.BAD_REQUEST,
-            f'Invalid password: {value_error.args[0]}'
+            f'Invalid password: {validation_error.args[0]}'
         )
 
     try:
@@ -142,12 +130,12 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Logs in a user.
+    """Logs in an existing user and return a session token.
 
     Accepts a JSON request with 'username' and 'password' fields.
 
     Returns:
-        A JSON response containing the login status or an error.
+        A JSON response containing the session token or an error.
     ---
     requestBody:
       required: true
@@ -161,22 +149,20 @@ def login():
                 description: Username for login.
               password:
                 type: string
-                description: Password for login.
+                description: "Password for login."
     responses:
       200:
-        description: On successful login (OK).
+        description: Successful login.
         content:
           application/json:
             schema:
               type: object
               properties:
-                message:
+                session_token:
                   type: string
-                  example: Login successful.
+                  example: "5d59516c29d8ad8443c1c2e6d3da51ac"
       400:
-        description: |
-          If required fields are missing or malformatted,
-          handled directly in the route (BAD_REQUEST).
+        description: Missing or invalid input.
         content:
           application/json:
             schema:
@@ -184,11 +170,9 @@ def login():
               properties:
                 error:
                   type: string
-                  example: Username is required.
+                  example: "Username is required."
       401:
-        description: |
-          If the login was unsuccessful, determined by the service
-          (UNAUTHORIZED).
+        description: Authentication failed, determined by the service.
         content:
           application/json:
             schema:
@@ -196,7 +180,7 @@ def login():
               properties:
                 error:
                   type: string
-                  example: Wrong password.
+                  example: "Wrong password."
     """
     data = request.get_json()
     username = data.get('username')
@@ -212,28 +196,18 @@ def login():
 
     try:
         validated_username = validate_username(username)
-    except TypeError as type_error:
+    except (TypeError, ValueError) as validation_error:
         abort(
             HTTPStatus.BAD_REQUEST,
-            f'Invalid username: {type_error.args[0]}'
-        )
-    except ValueError as value_error:
-        abort(
-            HTTPStatus.BAD_REQUEST,
-            f'Invalid username: {value_error.args[0]}'
+            f'Invalid username: {validation_error.args[0]}'
         )
 
     try:
         validated_password = validate_password(password)
-    except TypeError as type_error:
+    except (TypeError, ValueError) as validation_error:
         abort(
             HTTPStatus.BAD_REQUEST,
-            f'Invalid password: {type_error.args[0]}'
-        )
-    except ValueError as value_error:
-        abort(
-            HTTPStatus.BAD_REQUEST,
-            f'Invalid password: {value_error.args[0]}'
+            f'Invalid password: {validation_error.args[0]}'
         )
 
     try:
@@ -242,3 +216,75 @@ def login():
         abort(HTTPStatus.UNAUTHORIZED, str(service_error))
 
     return jsonify({'session_token': token}), HTTPStatus.OK
+
+
+@protected_bp.route('/protected', methods=["GET"])
+def protected():
+    """Access protected resource with a valid session token.
+
+    Requires a valid session token in the 'Authorization' header.
+
+    Returns:
+        JSON response with protected data on success or an error message.
+    ---
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: Protected data retrieved.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Hello user. Here is your protected data."
+      400:
+        description: Missing authorization header or invalid token.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Authorization header is required."
+      401:
+        description: Unauthorized access, determined by the service.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Session token not found."
+    """
+    authorisation_header = request.headers.get("Authorization")
+
+    if not authorisation_header:
+        missing_header_message = "Authorization header is required."
+        logger.debug(missing_header_message)
+        abort(HTTPStatus.BAD_REQUEST, missing_header_message)
+
+    if not authorisation_header.lower().startswith("bearer "):
+        missing_bearer_prefix_message = \
+          "Authorization header must start with 'Bearer '."
+        logger.debug(missing_bearer_prefix_message)
+        abort(HTTPStatus.BAD_REQUEST, missing_bearer_prefix_message)
+
+    token = authorisation_header[len("Bearer "):]
+
+    try:
+        validated_token = validate_token(token)
+        protected_message = user.get_protected_data(validated_token)
+    except (TypeError, ValueError) as validation_error:
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid token: {validation_error.args[0]}'
+        )
+    except ServiceError as service_error:
+        abort(HTTPStatus.UNAUTHORIZED, str(service_error))
+
+    return jsonify({"message": protected_message}), HTTPStatus.OK

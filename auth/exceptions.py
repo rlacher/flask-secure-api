@@ -51,3 +51,8 @@ class WrongPasswordError(ServiceError):
 class DuplicateSessionTokenError(ServiceError):
     """Raised when a generated token already exists."""
     description = "Failed to generate a unique session token."
+
+
+class SessionNotFoundError(ServiceError):
+    """Raised when no session exists for the provided token."""
+    description = "No session found for the given token."
