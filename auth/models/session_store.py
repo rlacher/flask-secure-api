@@ -26,6 +26,8 @@ _sessions: dict[str, str] = {}
 def create_session(username: str, token: str) -> bool:
     """Creates a new session.
 
+    Route handlers are responsible for input validation.
+
     Args:
         username (str): The username for whom a session is created.
         token (str): The session token identifying the user's session.
@@ -43,9 +45,29 @@ def create_session(username: str, token: str) -> bool:
 def get_username_from_token(token: str) -> str | None:
     """Retrieves the username for a given session token.
 
+    Route handlers are responsible for input validation.
+
     Args:
         token (str): The session token corresponding to a user.
     Returns:
         The username if the token is found, otherwise None.
     """
     return _sessions.get(token)
+
+
+def delete_session(token: str) -> bool:
+    """Deletes an existing session identified by its token.
+
+    Route handlers are responsible for input validation.
+
+    Args:
+        token (str): The provided session token.
+    Returns:
+        True if the session was removed, False otherwise.
+    """
+    if token not in _sessions:
+        logger.warning(f"Attempt to delete non-existent session: {token}")
+        return False
+
+    del _sessions[token]
+    return True

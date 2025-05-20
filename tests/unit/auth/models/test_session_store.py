@@ -21,7 +21,7 @@ class TestSessionStore:
 
     def test_create_session_new_token(self):
         """Test creating a session with a new token."""
-        with patch.dict(session_store._sessions, {}):
+        with patch.dict(session_store._sessions, {}, clear=True):
             session_created = session_store.create_session(
                 'test_user',
                 'new_token'
@@ -34,7 +34,8 @@ class TestSessionStore:
         """Test creating a session with an existing token."""
         with patch.dict(
             session_store._sessions,
-            {'existing_token': 'another_user'}
+            {'existing_token': 'another_user'},
+            clear=True
         ):
             session_created = session_store.create_session(
                 'test_user',
@@ -47,7 +48,8 @@ class TestSessionStore:
         """Test retrieving username for an existing token."""
         with patch.dict(
             session_store._sessions,
-            {'valid_token': 'test_user'}
+            {'valid_token': 'test_user'},
+            clear=True
         ):
             username_from_token = session_store.get_username_from_token(
                 'valid_token'
@@ -56,8 +58,28 @@ class TestSessionStore:
 
     def test_get_username_from_token_not_exists(self):
         """Test retrieving username for a non-existent token."""
-        with patch.dict(session_store._sessions, {}):
+        with patch.dict(session_store._sessions, {}, clear=True):
             no_username = session_store.get_username_from_token(
                 'invalid_token'
             )
             assert no_username is None
+
+    def test_delete_session_success(self):
+        """Test deleting a session given a valid token."""
+        with patch.dict(
+            session_store._sessions,
+            {'removable_token': 'some_user'},
+            clear=True
+        ):
+            is_deleted = session_store.delete_session('removable_token')
+
+            assert is_deleted
+            assert 'removable_token' not in session_store._sessions
+
+    def test_delete_session_empty_store(self):
+        """Test deleting a session from an empty session store."""
+        with patch.dict(session_store._sessions, {}, clear=True):
+            is_deleted = session_store.delete_session('any_token')
+
+            assert not is_deleted
+            assert len(session_store._sessions) == 0

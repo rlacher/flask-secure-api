@@ -117,3 +117,19 @@ def get_protected_data(token: str) -> str:
 
     protected_message = f"Hello {username}. Here is your protected data."
     return protected_message
+
+
+def logout_user(token: str):
+    """Logs out a user by its session token.
+
+    Deletes the session identified by the session token.
+
+    Args:
+        token (str): The provided session token.
+    Raises:
+        SessionNotFoundError: If the token is not associated with
+        any active session.
+    """
+    is_deleted = session_store.delete_session(token)
+    if not is_deleted:
+        raise SessionNotFoundError()

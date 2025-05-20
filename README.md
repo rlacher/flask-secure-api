@@ -79,6 +79,15 @@ curl -X GET \
 ```
 Example response: `{"message": "Hello new_user. Here is your protected data."}`.
 
+### Log out from session
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer 5d59516c29d8ad8443c1c2e6d3da51ac" \
+  http://localhost:5000/logout
+```
+Example response: `{"message": "Logged out successfully."}`.
+
 ### Error Handling
 
 The API provides informative error responses for various failure scenarios. For instance, registering with an invalid username returns a `400 Bad Request` with a JSON body detailing the validation error:
@@ -104,6 +113,8 @@ This table summarises the implemented fault conditions.
 | /login      | Incorrect password         | `401 Unauthorized` |
 | /protected  | Missing/invalid token      | `400 Bad Request`  |
 | /protected  | Session not found          | `401 Unauthorized` |
+| /logout     | Missing/invalid token      | `400 Bad Request`  |
+| /logout     | Session not found          | `401 Unauthorized` |
 
 Flask handles standard errors (e.g. incorrect request method) automatically. These are omitted here.
 

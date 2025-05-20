@@ -288,3 +288,76 @@ def protected():
         abort(HTTPStatus.UNAUTHORIZED, str(service_error))
 
     return jsonify({"message": protected_message}), HTTPStatus.OK
+
+
+@protected_bp.route('/logout', methods=["POST"])
+def logout():
+    """Logs the user out, invalidating the session token.
+
+    Requires a valid session token in the 'Authorization' header.
+
+    Returns:
+        JSON response confirming successful logout or an error message.
+    ---
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: Successful logout.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Logged out successfully."
+      400:
+        description: Missing authorization header or invalid token.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Authorization header is required."
+      401:
+        description: Unauthorized access, determined by the service.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+                  example: "Session token not found."
+    """
+    authorisation_header = request.headers.get("Authorization")
+
+    if not authorisation_header:
+        missing_header_message = "Authorization header is required."
+        logger.debug(missing_header_message)
+        abort(HTTPStatus.BAD_REQUEST, missing_header_message)
+
+    if not authorisation_header.lower().startswith("bearer "):
+        missing_bearer_prefix_message = \
+          "Authorization header must start with 'Bearer '."
+        logger.debug(missing_bearer_prefix_message)
+        abort(HTTPStatus.BAD_REQUEST, missing_bearer_prefix_message)
+
+    token = authorisation_header[len("Bearer "):]
+
+    try:
+        validated_token = validate_token(token)
+        user.logout_user(validated_token)
+        logger.info("User logged out successfully.")
+    except (TypeError, ValueError) as validation_error:
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            f'Invalid token: {validation_error.args[0]}'
+        )
+    except ServiceError as service_error:
+        abort(HTTPStatus.UNAUTHORIZED, str(service_error))
+
+    return jsonify({"message": "Logged out successfully."}), HTTPStatus.OK

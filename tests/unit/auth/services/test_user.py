@@ -163,3 +163,28 @@ class TestGetProtectedData():
         with raises(SessionNotFoundError):
             services.user.get_protected_data("invalid_token")
         mock_get_username.assert_called_once_with("invalid_token")
+
+
+class TestLogoutUser:
+    "Tests the user logout functionality."""
+
+    @patch(
+        'auth.services.user.session_store.delete_session',
+        return_value=True
+    )
+    def test_logout_user_success(self, mock_delete_session):
+        """Tests the successful logout of a user."""
+        token = "valid_token"
+        services.user.logout_user(token)
+        mock_delete_session.assert_called_once_with(token)
+
+    @patch(
+        'auth.services.user.session_store.delete_session',
+        return_value=False
+    )
+    def test_logout_user_session_not_found(self, mock_delete_session):
+        """Tests SessionNotFoundError is raised when token is not found."""
+        token = "invalid_token"
+        with raises(SessionNotFoundError):
+            services.user.logout_user(token)
+        mock_delete_session.assert_called_once_with(token)
