@@ -23,6 +23,7 @@ from auth.validators.domain import (
     validate_password,
     validate_token
 )
+from auth.exceptions import ValidationError
 
 
 class TestValidateUsername:
@@ -51,8 +52,8 @@ class TestValidateUsername:
         ],
     )
     def test_invalid_username(self, invalid_username):
-        """Raises ValueError for invalid usernames."""
-        with pytest.raises(ValueError):
+        """Raises ValidationError for invalid usernames."""
+        with pytest.raises(ValidationError):
             validate_username(invalid_username)
 
     @pytest.mark.parametrize(
@@ -65,8 +66,8 @@ class TestValidateUsername:
         ],
     )
     def test_username_non_string(self, non_string_username):
-        """Raises TypeError when username is not a string."""
-        with pytest.raises(TypeError):
+        """Raises ValidationError when username is not a string."""
+        with pytest.raises(ValidationError):
             validate_username(non_string_username)
 
 
@@ -109,8 +110,8 @@ class TestValidatePassword:
         ],
     )
     def test_invalid_password(self, invalid_password):
-        """Raises ValueError for invalid passwords."""
-        with pytest.raises(ValueError):
+        """Raises ValidationError for invalid passwords."""
+        with pytest.raises(ValidationError):
             validate_password(invalid_password)
 
     @pytest.mark.parametrize(
@@ -123,8 +124,8 @@ class TestValidatePassword:
         ],
     )
     def test_password_non_string(self, non_string_password):
-        """Raises TypeError when password is not a string."""
-        with pytest.raises(TypeError):
+        """Raises ValidationError when password is not a string."""
+        with pytest.raises(ValidationError):
             validate_password(non_string_password)
 
 
@@ -157,8 +158,8 @@ class TestValidateToken:
         ],
     )
     def test_invalid_token(self, invalid_token):
-        """Raises ValueError for invalid tokens."""
-        with pytest.raises(ValueError):
+        """Raises ValidationError for invalid tokens."""
+        with pytest.raises(ValidationError):
             validate_token(invalid_token)
 
     @pytest.mark.parametrize(
@@ -171,6 +172,6 @@ class TestValidateToken:
         ],
     )
     def test_token_non_string(self, non_string_token):
-        """Raises TypeError when token is not a string."""
-        with pytest.raises(TypeError):
+        """Raises ValidationError when token is not a string."""
+        with pytest.raises(ValidationError):
             validate_token(non_string_token)

@@ -20,9 +20,8 @@ This module provides the primary authentication interface for the API.
 from http import HTTPStatus
 import logging
 
-from flask import abort, Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request
 
-from auth.exceptions import ServiceError
 from auth.validators import (
     domain as domain_validators,
     request as request_validators
@@ -89,26 +88,14 @@ def register():
                   type: string
                   example: "User already exists."
     """
-    try:
-        credentials = request_validators.validate_credentials_payload(
-            request
-        )
-        validated_username = domain_validators.validate_username(
-            credentials.username
-        )
-        validated_password = domain_validators.validate_password(
-            credentials.password
-        )
-        user_services.register_user(
-            validated_username,
-            validated_password
-        )
-    except (TypeError, ValueError) as validation_error:
-        logger.warning("Bad request: Missing or invalid credentials.")
-        abort(HTTPStatus.BAD_REQUEST, validation_error.args[0])
-    except ServiceError as service_error:
-        logger.info("Conflict: Register failed.")
-        abort(HTTPStatus.CONFLICT, str(service_error))
+    credentials = request_validators.validate_credentials_payload(request)
+    validated_username = domain_validators.validate_username(
+        credentials.username
+    )
+    validated_password = domain_validators.validate_password(
+        credentials.password
+    )
+    user_services.register_user(validated_username, validated_password)
 
     return jsonify(
         {'message': "User successfully registered"}
@@ -169,26 +156,14 @@ def login():
                   type: string
                   example: "Wrong password."
     """
-    try:
-        credentials = request_validators.validate_credentials_payload(
-            request
-        )
-        validated_username = domain_validators.validate_username(
-            credentials.username
-        )
-        validated_password = domain_validators.validate_password(
-            credentials.password
-        )
-        token = user_services.login_user(
-            validated_username,
-            validated_password
-          )
-    except (TypeError, ValueError) as validation_error:
-        logger.warning("Bad request: Missing or invalid credentials.")
-        abort(HTTPStatus.BAD_REQUEST, validation_error.args[0])
-    except ServiceError as service_error:
-        logger.info("Unauthorised: Login failed.")
-        abort(HTTPStatus.UNAUTHORIZED, str(service_error))
+    credentials = request_validators.validate_credentials_payload(request)
+    validated_username = domain_validators.validate_username(
+        credentials.username
+    )
+    validated_password = domain_validators.validate_password(
+        credentials.password
+    )
+    token = user_services.login_user(validated_username, validated_password)
 
     return jsonify({'session_token': token}), HTTPStatus.OK
 
@@ -236,17 +211,10 @@ def protected():
                   type: string
                   example: "Session token not found."
     """
-    try:
-        auth_header = request.headers.get("Authorization")
-        token = request_validators.validate_authorisation_header(auth_header)
-        validated_token = domain_validators.validate_token(token)
-        protected_message = user_services.get_protected_data(validated_token)
-    except (TypeError, ValueError) as validation_error:
-        logger.warning("Bad request: Missing or invalid token")
-        abort(HTTPStatus.BAD_REQUEST, validation_error.args[0])
-    except ServiceError as service_error:
-        logger.info("Unauthorised: Protected resource access failed.")
-        abort(HTTPStatus.UNAUTHORIZED, str(service_error))
+    auth_header = request.headers.get("Authorization")
+    token = request_validators.validate_authorisation_header(auth_header)
+    validated_token = domain_validators.validate_token(token)
+    protected_message = user_services.get_protected_data(validated_token)
 
     return jsonify({"message": protected_message}), HTTPStatus.OK
 
@@ -294,17 +262,10 @@ def logout():
                   type: string
                   example: "Session token not found."
     """
-    try:
-        auth_header = request.headers.get("Authorization")
-        token = request_validators.validate_authorisation_header(auth_header)
-        validated_token = domain_validators.validate_token(token)
-        user_services.logout_user(validated_token)
-        logger.info("User logged out successfully.")
-    except (TypeError, ValueError) as validation_error:
-        logger.warning("Bad request: Missing or invalid token")
-        abort(HTTPStatus.BAD_REQUEST, validation_error.args[0])
-    except ServiceError as service_error:
-        logger.info("Unauthorised: Logout failed")
-        abort(HTTPStatus.UNAUTHORIZED, str(service_error))
+    auth_header = request.headers.get("Authorization")
+    token = request_validators.validate_authorisation_header(auth_header)
+    validated_token = domain_validators.validate_token(token)
+    user_services.logout_user(validated_token)
+    logger.info("User logged out successfully.")
 
     return jsonify({"message": "Logged out successfully."}), HTTPStatus.OK

@@ -21,6 +21,7 @@ from auth.validators.request import (
     validate_authorisation_header,
     validate_credentials_payload,
 )
+from auth.exceptions import ValidationError
 
 
 class TestValidateAuthorisationHeader:
@@ -39,16 +40,16 @@ class TestValidateAuthorisationHeader:
         assert token == expected_token
 
     @pytest.mark.parametrize(
-        "invalid_auth_header, error_type",
+        "invalid_auth_header",
         [
-            (None, TypeError),  # Missing header
-            ("token_no_prefix", ValueError),  # Missing Bearer prefix
-            ("Bearer ", ValueError)  # Missing token
+            None,  # Missing header
+            "token_no_prefix",  # Missing Bearer prefix
+            "Bearer "  # Missing token
         ]
     )
-    def test_invalid_header(self, invalid_auth_header, error_type):
-        """Tests invalid Authorization headers raise correct error."""
-        with raises(error_type):
+    def test_invalid_header(self, invalid_auth_header):
+        """Tests invalid Authorization headers raise a validation error."""
+        with raises(ValidationError):
             validate_authorisation_header(invalid_auth_header)
 
 
@@ -73,17 +74,17 @@ class TestValidateCredentialsPayload:
         assert validated_credentials == Credentials(**valid_payload)
 
     @pytest.mark.parametrize(
-        "invalid_payload, error_type",
+        "invalid_payload",
         [
-            (None, TypeError),  # Missing payload
-            ({}, ValueError),  # Empty payload
-            ({"username": "valid_user"}, ValueError),  # Missing key
-            ({"username": 1, "password": "pw"}, ValueError)  # Wrong type
+            None,  # Missing payload
+            {},  # Empty payload
+            {"username": "valid_user"},  # Missing key
+            {"username": 1, "password": "pw"}  # Wrong type
         ]
     )
-    def test_invalid_payload(self, invalid_payload, error_type):
-        """Tests that invalid JSON payloads raise the correct error."""
+    def test_invalid_payload(self, invalid_payload,):
+        """Tests that invalid JSON payloads raise a validation error."""
         mock_request = MagicMock()
         mock_request.get_json.return_value = invalid_payload
-        with raises(error_type):
+        with raises(ValidationError):
             validate_credentials_payload(mock_request)

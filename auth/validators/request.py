@@ -17,6 +17,8 @@ from dataclasses import dataclass
 
 from flask import Request
 
+from auth.exceptions import ValidationError
+
 
 @dataclass
 class Credentials:
@@ -31,21 +33,23 @@ def validate_authorisation_header(auth_header: str) -> str:
     Validation covers the existence and format of the 'Bearer ' prefix.
 
     Raises:
-        TypeError: If 'Authorization' header is missing.
-        ValueError: If it does not follow Bearer <token> format.
+        ValidationError: If 'Authorization' header is missing or does not
+        follow Bearer <token> format.
 
     Returns:
         The extracted token string.
     """
     if not auth_header:
-        raise TypeError("Authorization header is required.")
+        raise ValidationError("Authorization header is required.")
 
     if not auth_header.startswith("Bearer "):
-        raise ValueError("Authorization header must start with 'Bearer '.")
+        raise ValidationError(
+            "Authorization header must start with 'Bearer '."
+        )
 
     token = auth_header.removeprefix("Bearer ").strip()
     if not token:
-        raise ValueError("Authorization token is required.")
+        raise ValidationError("Authorization token is required.")
 
     return token
 
@@ -85,21 +89,21 @@ def _validate_json_payload(
         required_types: Corresponding list of expected types.
 
     Raises:
-        TypeError: If the request body is not valid JSON.
-        ValueError: If any required key is missing or of the wrong type.
+        ValidationError: If the request body is not valid JSON, any
+        required key is missing or of the wrong type.
 
     Returns:
         The parsed and validated JSON payload as a dictionary.
     """
     payload = request.get_json()
     if payload is None:
-        raise TypeError("Request body must be a valid JSON object.")
+        raise ValidationError("Request body must be a valid JSON object.")
 
     for key, expected_type in zip(required_keys, required_types):
         if key not in payload:
-            raise ValueError(f"Missing required field: {key}")
+            raise ValidationError(f"Missing required field: {key}")
         if not isinstance(payload[key], expected_type):
-            raise ValueError(
+            raise ValidationError(
                 f"Field '{key}' must be of type {expected_type.__name__}."
             )
     return payload

@@ -19,6 +19,8 @@ from re import (
 )
 from typing import Final
 
+from auth.exceptions import ValidationError
+
 USERNAME_PATTERN: Final[Pattern] = compile(
     r'^[a-zA-Z0-9_]{3,20}$'
 )
@@ -45,8 +47,7 @@ def validate_username(username: str) -> str:
     Returns:
         The validated username.
     Raises:
-        TypeError: If the username is not a string.
-        ValueError: If the username is invalid.
+        ValidationError: If the username is not a string or invalid.
     """
     return _validate_regex(
         username,
@@ -65,8 +66,7 @@ def validate_password(password: str) -> str:
     Returns:
         The validated password.
     Raises:
-        TypeError: If the password is not a string.
-        ValueError: If the password is invalid.
+        ValidationError: If the password is not a string or invalid.
     """
     return _validate_regex(
         password,
@@ -86,8 +86,7 @@ def validate_token(token: str) -> str:
     Returns:
         The validated token.
     Raises:
-        TypeError: If the token is not a string.
-        ValueError: If the token is invalid.
+        ValidationError: If the token is not a string or invalid.
     """
     return _validate_regex(
         token,
@@ -106,14 +105,11 @@ def _validate_regex(input: str, pattern: Pattern, error_info: str) -> str:
     Returns:
         The validated input.
     Raises:
-        TypeError: If input is not a string.
-        ValueError: If input does not match the pattern.
+        ValidationError: If input is not a string or does not match
+        the pattern.
     """
-    if not isinstance(input, str):
-        raise TypeError(error_info)
-
-    if not pattern.fullmatch(input):
-        raise ValueError(error_info)
+    if not isinstance(input, str) or not pattern.fullmatch(input):
+        raise ValidationError(error_info)
 
     logger.debug(f"Input matches pattern: {input}")
     return input

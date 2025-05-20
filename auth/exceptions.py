@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Defines custom exception types"""
+from http import HTTPStatus
 import logging
 from abc import ABC
 
@@ -19,12 +20,12 @@ from abc import ABC
 logger = logging.getLogger(__name__)
 
 
-class ServiceError(ABC, Exception):
-    """Base class for service-related errors.
+class BaseAuthError(Exception, ABC):
+    """Base class for authentication errors.
 
     Subclasses should define a description attribute to provide context.
     """
-    description = "A service error occurred."
+    description = "An authentication occurred."
 
     def __init__(self, message=None):
         """
@@ -42,26 +43,42 @@ class ServiceError(ABC, Exception):
         return self.message
 
 
+class ServiceError(BaseAuthError, ABC):
+    """Base class for service-related errors."""
+    description = "A service error occurred."
+    status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+
+
+class ValidationError(BaseAuthError):
+    """Validation errors raised directly from validator functions."""
+    description = "A validation error occurred."
+
+
 class UserAlreadyExistsError(ServiceError):
     """Raised when registration fails because a user already exists."""
     description = "User already exists"
+    status_code = HTTPStatus.CONFLICT
 
 
 class UserDoesNotExistError(ServiceError):
     """Raised when a user cannot be found on login attempt."""
     description = "User does not exist"
+    status_code = HTTPStatus.UNAUTHORIZED
 
 
 class WrongPasswordError(ServiceError):
     """Raised when a user's password is wrong."""
     description = "Wrong password"
+    status_code = HTTPStatus.UNAUTHORIZED
 
 
 class DuplicateSessionTokenError(ServiceError):
     """Raised when a generated token already exists."""
     description = "Failed to generate a unique session token."
+    status_code = HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 class SessionNotFoundError(ServiceError):
     """Raised when no session exists for the provided token."""
     description = "No session found for the given token."
+    status_code = HTTPStatus.UNAUTHORIZED

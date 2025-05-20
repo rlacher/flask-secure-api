@@ -98,7 +98,7 @@ curl -X POST \
   -d '{"username": "invalid$username", "password": "secure_password1"}' \
   http://localhost:5000/register
 ```
-Example response: `{"error": "Invalid username: Must be 3-20 alphanumeric characters or underscore"}`
+Example response: `{"error": "Username must be a string, 3-20 alphanumeric character or underscore."}`
 
 This table summarises the implemented fault conditions.
 
