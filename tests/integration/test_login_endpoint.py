@@ -14,47 +14,29 @@
 """Integration tests for user login."""
 from http import HTTPStatus
 
-import pytest
 from flask.testing import FlaskClient
 from unittest.mock import patch, ANY, MagicMock
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash
 
 from auth import services
 from auth.models import (
     session_store,
     user_store
 )
-from auth.validators import (
-    validate_username,
-    validate_password
-)
+from auth.validators import domain as domain_validators
 
 
-class TestUserLogin:
+class TestLoginEndpoint:
     """Tests the user login process.
 
     Verifies control and data flow between /login and login_user().
     """
 
-    @pytest.fixture(autouse=True)
-    def populate_user_store(self, valid_credentials):
-        hashed_password = generate_password_hash(
-            valid_credentials['password']
-        )
-        is_added = user_store.add_user(
-            valid_credentials['username'],
-            hashed_password
-        )
-        if not is_added:
-            pytest.fail(
-                "Failed to add user to user store during setup: " +
-                f"{valid_credentials['username']}"
-            )
-
     def test_user_login_success(
         self,
         client: FlaskClient,
-        valid_credentials
+        valid_credentials,
+        populate_user_store
     ):
         """Tests user login with valid credentials."""
         spied_login_user = MagicMock(wraps=services.user.login_user)
@@ -87,6 +69,7 @@ class TestUserLogin:
             )
 
             assert response.status_code == HTTPStatus.OK
+            assert response.content_type == "application/json"
             assert "session_token" in response.json
             spied_login_user.assert_called_once_with(
                 valid_credentials['username'],
@@ -110,7 +93,9 @@ class TestUserLogin:
     ):
         """Tests user login with an invalid username."""
         spied_login_user = MagicMock(wraps=services.user.login_user)
-        spied_validate_username = MagicMock(wraps=validate_username)
+        spied_validate_username = MagicMock(
+            wraps=domain_validators.validate_username
+        )
         invalid_username_credentials = {
             "username": "invalid$username",
             "password": "valid_password1"
@@ -122,7 +107,7 @@ class TestUserLogin:
                 spied_login_user
             ),
             patch(
-                'auth.routes.user.validate_username',
+                'auth.routes.user.domain_validators.validate_username',
                 spied_validate_username
             )
         ):
@@ -131,6 +116,7 @@ class TestUserLogin:
             )
 
             assert response.status_code == HTTPStatus.BAD_REQUEST
+            assert response.content_type == "application/json"
             spied_validate_username.assert_called_once_with(
                 invalid_username_credentials['username']
             )
@@ -138,11 +124,14 @@ class TestUserLogin:
 
     def test_user_login_invalid_password(
         self,
-        client: FlaskClient
+        client: FlaskClient,
+        populate_user_store
     ):
         """Tests user login with an invalid username."""
         spied_login_user = MagicMock(wraps=services.user.login_user)
-        spied_validate_password = MagicMock(wraps=validate_password)
+        spied_validate_password = MagicMock(
+            wraps=domain_validators.validate_password
+        )
         invalid_password_credentials = {
             "username": "valid_username",
             "password": "invalidpassword"
@@ -154,7 +143,7 @@ class TestUserLogin:
                 spied_login_user
             ),
             patch(
-                'auth.routes.user.validate_password',
+                'auth.routes.user.domain_validators.validate_password',
                 spied_validate_password
             )
         ):
@@ -163,6 +152,7 @@ class TestUserLogin:
             )
 
             assert response.status_code == HTTPStatus.BAD_REQUEST
+            assert response.content_type == "application/json"
             spied_validate_password.assert_called_once_with(
                 invalid_password_credentials['password']
             )
@@ -188,6 +178,7 @@ class TestUserLogin:
             )
 
             assert response.status_code == HTTPStatus.UNAUTHORIZED
+            assert response.content_type == "application/json"
             spied_login_user.assert_called_once_with(
                 unknown_user_credentials['username'],
                 unknown_user_credentials['password']

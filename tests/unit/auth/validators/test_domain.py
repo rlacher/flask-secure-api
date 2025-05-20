@@ -11,14 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Unit tests for the validators module.
+"""Unit tests for the domain validators module.
 
 Tests exercise public functions, implicitly verifying regex validation
 via non-mocked _validate_regex() calls.
 """
 import pytest
 
-from auth.validators import (
+from auth.validators.domain import (
     validate_username,
     validate_password,
     validate_token

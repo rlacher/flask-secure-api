@@ -14,63 +14,34 @@
 """Integration tests for protected data access."""
 from http import HTTPStatus
 
-import pytest
 from flask.testing import FlaskClient
 from unittest.mock import patch, MagicMock
-from werkzeug.security import generate_password_hash
 
 from auth import services
-from auth.models import (
-    session_store,
-    user_store
-)
-from auth.validators import validate_token
+from auth.exceptions import SessionNotFoundError
+from auth.models import session_store
+from auth.validators import domain as domain_validators
 
 
-class TestProtectedAccess:
-    """Tests the authenticated access to protected data.
+class TestProtectedDataEndpoint:
+    """Tests the /protected endpoint for authenticated access.
 
-    Verifies control and data flow between /protected and access_protected().
+    This class verifies control and data flow between the /protected route
+    and the underlying authentication services.
     """
-
-    @pytest.fixture(autouse=True)
-    def populate_user_store(self, valid_credentials):
-        hashed_password = generate_password_hash(
-            valid_credentials['password']
-        )
-        is_added = user_store.add_user(
-            valid_credentials['username'],
-            hashed_password
-        )
-        if not is_added:
-            pytest.fail(
-                "Failed to add user to user store during setup: " +
-                valid_credentials['username']
-            )
-
-    @pytest.fixture
-    def valid_session_token(self, valid_credentials):
-        return "0" * 32
-
-    @pytest.fixture(autouse=True)
-    def populate_session_store(self, valid_credentials, valid_session_token):
-        session_created = session_store.create_session(
-            valid_credentials['username'],
-            valid_session_token
-        )
-        if not session_created:
-            pytest.fail(
-                "Failed to create session during setup: " +
-                f"{valid_credentials['username']}, {valid_session_token}"
-            )
 
     def test_get_protected_data_success(
             self,
             client: FlaskClient,
-            valid_session_token
+            valid_session_token,
+            valid_auth_header,
+            populate_user_store,
+            populate_session_store
     ):
-        """Tests access of protected data with valid session token."""
-        spied_validate_token = MagicMock(wraps=validate_token)
+        """Retrieves protected data with a valid session token."""
+        spied_validate_token = MagicMock(
+            wraps=domain_validators.validate_token
+        )
         spied_get_protected_data = MagicMock(
             wraps=services.user.get_protected_data
         )
@@ -80,7 +51,7 @@ class TestProtectedAccess:
 
         with (
             patch(
-                'auth.routes.user.validate_token',
+                'auth.routes.user.domain_validators.validate_token',
                 spied_validate_token
             ),
             patch(
@@ -92,20 +63,57 @@ class TestProtectedAccess:
                 spied_get_username_from_token
             )
         ):
-            authorisation_header_value = f"Bearer {valid_session_token}"
-            authorisation_header = {
-                "Authorization": authorisation_header_value
-            }
             response = client.get(
-                "/protected", headers=authorisation_header
+                "/protected", headers=valid_auth_header
             )
 
             assert response.status_code == HTTPStatus.OK
+            assert response.content_type == "application/json"
             assert "message" in response.json
             assert b"Hello" in response.data
             spied_validate_token.assert_called_once_with(
                 valid_session_token
             )
+            spied_get_username_from_token.assert_called_once_with(
+                valid_session_token
+            )
+            spied_get_protected_data.assert_called_once_with(
+                valid_session_token
+            )
+
+    def test_get_protected_data_empty_session_store(
+            self,
+            client: FlaskClient,
+            valid_session_token,
+            valid_auth_header
+    ):
+        """Denies access to protected data without active session."""
+        spied_get_protected_data = MagicMock(
+            wraps=services.user.get_protected_data
+        )
+        spied_get_username_from_token = MagicMock(
+            wraps=session_store.get_username_from_token
+        )
+
+        with (
+            patch(
+                'auth.services.user.get_protected_data',
+                spied_get_protected_data
+            ),
+            patch(
+                'auth.services.user.session_store.get_username_from_token',
+                spied_get_username_from_token
+            )
+        ):
+            response = client.get(
+                "/protected", headers=valid_auth_header
+            )
+
+            assert response.status_code == HTTPStatus.UNAUTHORIZED
+            assert response.content_type == "application/json"
+            assert "error" in response.json
+            error_data = SessionNotFoundError.description.encode('utf-8')
+            assert error_data in response.data
             spied_get_username_from_token.assert_called_once_with(
                 valid_session_token
             )

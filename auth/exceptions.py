@@ -11,20 +11,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Defines custom exception types"""
 import logging
+from abc import ABC
 
 
 logger = logging.getLogger(__name__)
 
 
-class ServiceError(Exception):
-    """Base class for service-related errors."""
+class ServiceError(ABC, Exception):
+    """Base class for service-related errors.
+
+    Subclasses should define a description attribute to provide context.
+    """
     description = "A service error occurred."
 
     def __init__(self, message=None):
-        """Initialises the ServiceError instance."""
+        """
+        Initialise the error with an optional specific message.
+
+        Args:
+            message (str): Optional error message. If not provided,
+                the class-level `description` will be used.
+        """
         self.message = message or self.__class__.description
         super().__init__(self.message)
 
