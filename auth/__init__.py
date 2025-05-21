@@ -27,8 +27,8 @@ from flask import Flask
 from werkzeug.exceptions import HTTPException
 from flasgger import Swagger
 
-from .routes import user as user_routes
-from .errors import (
+from auth.routes import user as user_routes
+from auth.errors import (
     handle_http_exception,
     handle_service_error,
     handle_validation_error
