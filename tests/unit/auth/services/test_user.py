@@ -150,6 +150,7 @@ class TestGetProtectedData():
 
     @patch('auth.services.user.session_store.get_username_from_token')
     def test_get_protected_data_valid_token(self, mock_get_username):
+        """Ensures valid tokens retrieve protected data."""
         mock_get_username.return_value = "test_user"
         result = services.user.get_protected_data("token123")
         assert "Hello" in result and "test_user" in result
@@ -160,6 +161,7 @@ class TestGetProtectedData():
         return_value=None
     )
     def test_get_protected_data_invalid_token(self, mock_get_username):
+        """Verifies invalid tokens trigger a SessionNotFoundError."""
         with raises(SessionNotFoundError):
             services.user.get_protected_data("invalid_token")
         mock_get_username.assert_called_once_with("invalid_token")

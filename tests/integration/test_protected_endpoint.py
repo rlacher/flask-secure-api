@@ -74,10 +74,10 @@ class TestProtectedDataEndpoint:
             spied_validate_token.assert_called_once_with(
                 valid_session_token
             )
-            spied_get_username_from_token.assert_called_once_with(
+            spied_get_protected_data.assert_called_once_with(
                 valid_session_token
             )
-            spied_get_protected_data.assert_called_once_with(
+            spied_get_username_from_token.assert_called_once_with(
                 valid_session_token
             )
 

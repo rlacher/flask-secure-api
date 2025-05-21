@@ -75,10 +75,10 @@ class TestLogoutEndpoint:
             spied_validate_token.assert_called_once_with(
                 valid_session_token
             )
-            spied_delete_session.assert_called_once_with(
+            spied_logout_user.assert_called_once_with(
                 valid_session_token
             )
-            spied_logout_user.assert_called_once_with(
+            spied_delete_session.assert_called_once_with(
                 valid_session_token
             )
 

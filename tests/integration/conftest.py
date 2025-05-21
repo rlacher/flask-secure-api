@@ -46,6 +46,7 @@ def valid_credentials():
 
 @pytest.fixture
 def valid_session_token():
+    """Creates a valid 32-char dummy token."""
     return "0" * 32
 
 

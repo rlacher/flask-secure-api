@@ -31,7 +31,6 @@ class TestUserStore():
     )
     def test_get_hashed_password_success(self):
         """Test retrieving an existing user's hashed password."""
-        print(f"_users: {_users}")
         retrieved = get_hashed_password("existing_user")
         assert retrieved == "retrieved_hash"
 

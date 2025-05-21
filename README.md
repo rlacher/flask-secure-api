@@ -151,7 +151,7 @@ For interactive exploration using the Swagger UI:
 
 ## Test
 
-This project is thoroughly unit and integration tested, with a test suite comprising more than 100 automated test cases to guarantee API integrity.
+This project is thoroughly unit and integration tested, with a test suite comprising 117 automated test cases to guarantee API integrity.
 
 ### Execution
 
