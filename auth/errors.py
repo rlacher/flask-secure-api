@@ -17,10 +17,16 @@
 This module provides custom exception handlers for HTTP errors that
 occur within the application.
 """
+from http import HTTPStatus
 import logging
 
 from flask import jsonify
 from werkzeug.exceptions import HTTPException
+
+from auth.exceptions import (
+    ServiceError,
+    ValidationError
+)
 
 
 logger = logging.getLogger(__name__)
@@ -44,9 +50,49 @@ def handle_http_exception(exception: HTTPException):
             f"Must be an HTTPException, but got: {type(exception).__name__}"
         )
 
-    logger.warning(f"Handling exception: {exception}", exc_info=True)
+    logger.warning(
+        f"Handling HTTP exception: {type(exception).__name__} - {exception}"
+    )
 
     response = jsonify({'error': exception.description})
     response.status_code = exception.code
+    response.content_type = "application/json"
+    return response
+
+
+def handle_validation_error(exception: ValidationError):
+    """Handle domain and request validation errors.
+
+    Returns:
+        Response: A 400 JSON response with an error message.
+    """
+    logger.debug(
+        f"Handling validation error: {type(exception).__name__} - {exception}"
+    )
+
+    response = jsonify({'error': str(exception)})
+    response.status_code = HTTPStatus.BAD_REQUEST
+    response.content_type = "application/json"
+    return response
+
+
+def handle_service_error(exception: ServiceError):
+    """Handle service-layer exceptions by returning a JSON error response.
+
+    Handles domain-specific errors by returning a structured JSON response
+    with the relevant status code and message.
+
+    Args:
+        exception (ServiceError): The raised service-layer exception.
+
+    Returns:
+        Response: A JSON response with the error message and HTTP status code.
+    """
+    logger.info(
+        f"Handling service error: {type(exception).__name__} - {exception}"
+    )
+
+    response = jsonify({'error': str(exception)})
+    response.status_code = exception.status_code
     response.content_type = "application/json"
     return response

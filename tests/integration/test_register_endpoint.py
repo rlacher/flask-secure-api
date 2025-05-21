@@ -15,16 +15,13 @@
 from http import HTTPStatus
 
 from flask.testing import FlaskClient
-from unittest.mock import patch, ANY, MagicMock
+from unittest.mock import patch, MagicMock
 
 from auth import services
-from auth.validators import (
-    validate_username,
-    validate_password
-)
+from auth.validators import domain as domain_validators
 
 
-class TestUserRegistration:
+class TestRegisterEndpoint:
     """Tests the user registration process.
 
     Verifies control and data flow between /register and register_user().
@@ -42,10 +39,10 @@ class TestUserRegistration:
             response = client.post("/register", json=valid_credentials)
 
             assert response.status_code == HTTPStatus.CREATED
+            assert response.content_type == "application/json"
             spied_register_user.assert_called_once_with(
                 valid_credentials['username'],
-                valid_credentials['password'],
-                ANY
+                valid_credentials['password']
             )
 
     def test_user_registration_invalid_username(
@@ -57,10 +54,12 @@ class TestUserRegistration:
             "username": "invalid$username",
             "password": "valid_password1"
         }
-        spied_validate_username = MagicMock(wraps=validate_username)
+        spied_validate_username = MagicMock(
+            wraps=domain_validators.validate_username
+        )
 
         with patch(
-            'auth.routes.user.validate_username',
+            'auth.routes.user.domain_validators.validate_username',
             spied_validate_username
         ):
             response = client.post(
@@ -68,6 +67,7 @@ class TestUserRegistration:
             )
 
             assert response.status_code == HTTPStatus.BAD_REQUEST
+            assert response.content_type == "application/json"
             spied_validate_username.assert_called_once_with(
                 invalid_username_credentials['username']
             )
@@ -81,10 +81,12 @@ class TestUserRegistration:
             "username": "valid_username",
             "password": "invalidpassword"
         }
-        spied_validate_password = MagicMock(wraps=validate_password)
+        spied_validate_password = MagicMock(
+            wraps=domain_validators.validate_password
+        )
 
         with patch(
-            'auth.routes.user.validate_password',
+            'auth.routes.user.domain_validators.validate_password',
             spied_validate_password
         ):
             response = client.post(
@@ -92,6 +94,7 @@ class TestUserRegistration:
             )
 
             assert response.status_code == HTTPStatus.BAD_REQUEST
+            assert response.content_type == "application/json"
             spied_validate_password.assert_called_once_with(
                 invalid_password_credentials['password']
             )

@@ -27,8 +27,16 @@ from flask import Flask
 from werkzeug.exceptions import HTTPException
 from flasgger import Swagger
 
-from .routes import user as user_routes
-from .errors import handle_http_exception
+from auth.routes import user as user_routes
+from auth.errors import (
+    handle_http_exception,
+    handle_service_error,
+    handle_validation_error
+)
+from .exceptions import (
+    ServiceError,
+    ValidationError
+)
 
 
 def configure_logging():
@@ -50,7 +58,10 @@ def create_app():
     """Create and configure the Flask application."""
     app = Flask(__name__)
     app.register_blueprint(user_routes.auth_bp)
+    app.register_blueprint(user_routes.protected_bp)
     app.register_error_handler(HTTPException, handle_http_exception)
+    app.register_error_handler(ValidationError, handle_validation_error)
+    app.register_error_handler(ServiceError, handle_service_error)
     Swagger(app)
     return app
 

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """
 Encapsulates core authentication services.
 
@@ -19,61 +18,69 @@ This module handles user registration, login and other
 authentication-related tasks.
 """
 import logging
+import secrets
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from auth.exceptions import (
+    DuplicateSessionTokenError,
+    SessionNotFoundError,
     UserAlreadyExistsError,
     UserDoesNotExistError,
     WrongPasswordError
 )
+from auth.models import (
+    session_store,
+    user_store
+)
 
+SESSION_TOKEN_LENGTH_BYTES = 16
 
 logger = logging.getLogger(__name__)
 
 
 def register_user(username: str,
-                  password: str,
-                  user_store: dict):
+                  password: str):
     """Registers a new user with the given username and password.
 
     The password is hashed before storage. The username must be unique.
-    The user is stored in a dictionary.
+    Uses the data layer to store the new user.
 
     Args:
         username (str): The username of the user.
         password (str): The password of the user.
-        user_store (dict): The dictionary to store user data.
 
     Raises:
         UserAlreadyExistsError: If user_store already contains username.
     """
-    if username in user_store:
+    hashed_password = generate_password_hash(password)
+
+    if not user_store.add_user(username, hashed_password):
         raise UserAlreadyExistsError()
 
-    user_store[username] = generate_password_hash(password)
     logger.info(f"User registered: {username}")
 
 
 def login_user(
         username: str,
-        password: str,
-        user_store: dict):
+        password: str) -> str:
     """Logs in a user with the given username and password.
 
     The password is checked against the stored hash.
-    The user must exist in the dictionary.
+    Uses the data layer to retrieve the user's password for authentication.
 
     Args:
         username (str): The username of the user.
         password (str): The password of the user.
-        user_store (dict): The dictionary to access user data.
-
+    Returns:
+        str: Session token on successful login.
     Raises:
         UserDoesNotExistError: If the username does not exist in user_store.
         WrongPasswordError: If the password does not match the stored hash.
+        RuntimeError: If an unexpected internal error occurs during the login
+        process, such as a failure to create a unique session.
     """
-    hashed_password = user_store.get(username)
+    hashed_password = user_store.get_hashed_password(username)
 
     if not hashed_password:
         raise UserDoesNotExistError()
@@ -81,4 +88,48 @@ def login_user(
     if not check_password_hash(hashed_password, password):
         raise WrongPasswordError()
 
-    logger.info(f"User logged in: {username}")
+    try:
+        token = secrets.token_hex(SESSION_TOKEN_LENGTH_BYTES)
+        if not session_store.create_session(username, token):
+            raise DuplicateSessionTokenError()
+        logger.info(f"User '{username}' logged in")
+        return token
+    except DuplicateSessionTokenError as exception:
+        raise RuntimeError(
+            "An unexpected error occurred during login."
+        ) from exception
+
+
+def get_protected_data(token: str) -> str:
+    """Retrieve protected data for a user with a valid session token.
+
+    Args:
+        token (str): The session token for authenticated access.
+    Returns:
+        str: The protected resource.
+    Raises:
+        SessionNotFoundError: If the token is not associated with
+        any active session.
+    """
+    username = session_store.get_username_from_token(token)
+    if not username:
+        raise SessionNotFoundError()
+
+    protected_message = f"Hello {username}. Here is your protected data."
+    return protected_message
+
+
+def logout_user(token: str):
+    """Logs out a user by its session token.
+
+    Deletes the session identified by the session token.
+
+    Args:
+        token (str): The provided session token.
+    Raises:
+        SessionNotFoundError: If the token is not associated with
+        any active session.
+    """
+    is_deleted = session_store.delete_session(token)
+    if not is_deleted:
+        raise SessionNotFoundError()

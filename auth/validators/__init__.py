@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2025 René Lacher
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,16 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Entry point for the Flask authentication API.
-
-Initialises and runs the Flask application, dynamically enabling TLS
-if a self-signed certificate is found.
+Provides validation modules, split into http-level and domain-level
+validation.
 """
-from auth import create_app
-from auth.tls import get_ssl_context
-
-
-app = create_app()
-
-if __name__ == '__main__':
-    app.run(debug=True, ssl_context=get_ssl_context())

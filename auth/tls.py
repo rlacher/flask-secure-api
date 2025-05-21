@@ -11,13 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Encapsulates TLS certificate detection logic."""
+import logging
+from os import path
 
-"""
-Implements an in-memory data store for authentication.
+CERT_FOLDER = "certs"
+CERT_FILE = path.join(CERT_FOLDER, "cert.pem")
+KEY_FILE = path.join(CERT_FOLDER, "key.pem")
 
-This module provides a lightweight storage mechanism using Python's
-built-in data structures to manage user credentials and session
-information.
-"""
+logger = logging.getLogger(__name__)
 
-users: dict[str, str] = {}
+
+def get_ssl_context():
+    """Check for TLS certificates and return appropriate context."""
+    if path.exists(CERT_FILE) and path.exists(KEY_FILE):
+        return (CERT_FILE, KEY_FILE)
+    logger.warning("TLS certificates missing, running in HTTP mode.")
+    return None
