@@ -41,7 +41,8 @@ def register():
     Accepts a JSON request with 'username' and 'password' fields.
 
     Returns:
-        A JSON response containing the registration status or an error.
+        tuple[Response, int]: A JSON response containing the
+        registration status or an error.
     ---
     requestBody:
       required: true
@@ -52,13 +53,13 @@ def register():
             properties:
               username:
                 type: string
-                description: Username for registration.
+                description: Username for registration
               password:
                 type: string
-                description: "Password for registration."
+                description: "Password for registration"
     responses:
       201:
-        description: Successful user registration.
+        description: Successful user registration
         content:
           application/json:
             schema:
@@ -66,9 +67,9 @@ def register():
               properties:
                 message:
                   type: string
-                  example: "User successfully registered."
+                  example: "User successfully registered"
       400:
-        description: Missing or invalid input.
+        description: Missing or invalid input
         content:
           application/json:
             schema:
@@ -76,7 +77,7 @@ def register():
               properties:
                 error:
                   type: string
-                  example: "Username is required."
+                  example: "Username is required"
       409:
         description: Registration failed, determined by the service.
         content:
@@ -86,7 +87,7 @@ def register():
               properties:
                 error:
                   type: string
-                  example: "User already exists."
+                  example: "User already exists"
     """
     credentials = request_validators.validate_credentials_payload(request)
     validated_username = domain_validators.validate_username(
@@ -109,7 +110,8 @@ def login():
     Accepts a JSON request with 'username' and 'password' fields.
 
     Returns:
-        A JSON response containing the session token or an error.
+        tuple[Response, int]: A JSON response containing the session
+        token or an error.
     ---
     requestBody:
       required: true
@@ -120,10 +122,10 @@ def login():
             properties:
               username:
                 type: string
-                description: Username for login.
+                description: Username for login
               password:
                 type: string
-                description: "Password for login."
+                description: "Password for login"
     responses:
       200:
         description: Successful login.
@@ -136,7 +138,7 @@ def login():
                   type: string
                   example: "5d59516c29d8ad8443c1c2e6d3da51ac"
       400:
-        description: Missing or invalid input.
+        description: Missing or invalid input
         content:
           application/json:
             schema:
@@ -144,7 +146,7 @@ def login():
               properties:
                 error:
                   type: string
-                  example: "Username is required."
+                  example: "Username is required"
       401:
         description: Authentication failed, determined by the service.
         content:
@@ -154,7 +156,7 @@ def login():
               properties:
                 error:
                   type: string
-                  example: "Wrong password."
+                  example: "Wrong password"
     """
     credentials = request_validators.validate_credentials_payload(request)
     validated_username = domain_validators.validate_username(
@@ -175,13 +177,14 @@ def protected():
     Requires a valid session token in the 'Authorization' header.
 
     Returns:
-        JSON response with protected data on success or an error message.
+        tuple[Response, int]: JSON response with protected data
+        on success or an error message.
     ---
     security:
       - BearerAuth: []
     responses:
       200:
-        description: Protected data retrieved.
+        description: Protected data retrieved
         content:
           application/json:
             schema:
@@ -199,7 +202,7 @@ def protected():
               properties:
                 error:
                   type: string
-                  example: "Authorization header is required."
+                  example: "Authorization header required"
       401:
         description: Unauthorized access, determined by the service.
         content:
@@ -209,7 +212,7 @@ def protected():
               properties:
                 error:
                   type: string
-                  example: "Session token not found."
+                  example: "Session token not found"
     """
     auth_header = request.headers.get("Authorization")
     token = request_validators.validate_authorisation_header(auth_header)
@@ -226,13 +229,14 @@ def logout():
     Requires a valid session token in the 'Authorization' header.
 
     Returns:
-        JSON response confirming successful logout or an error message.
+        tuple[Response, int]: JSON response confirming successful
+        logout or an error message.
     ---
     security:
       - BearerAuth: []
     responses:
       200:
-        description: Successful logout.
+        description: Successful logout
         content:
           application/json:
             schema:
@@ -240,7 +244,7 @@ def logout():
               properties:
                 message:
                   type: string
-                  example: "Logged out successfully."
+                  example: "Logged out successfully"
       400:
         description: Missing authorization header or invalid token.
         content:
@@ -250,7 +254,7 @@ def logout():
               properties:
                 error:
                   type: string
-                  example: "Authorization header is required."
+                  example: "Authorization header required"
       401:
         description: Unauthorized access, determined by the service.
         content:
@@ -260,7 +264,7 @@ def logout():
               properties:
                 error:
                   type: string
-                  example: "Session token not found."
+                  example: "Session token not found"
     """
     auth_header = request.headers.get("Authorization")
     token = request_validators.validate_authorisation_header(auth_header)
@@ -268,4 +272,4 @@ def logout():
     user_services.logout_user(validated_token)
     logger.info("User logged out successfully.")
 
-    return jsonify({"message": "Logged out successfully."}), HTTPStatus.OK
+    return jsonify({"message": "Logged out successfully"}), HTTPStatus.OK

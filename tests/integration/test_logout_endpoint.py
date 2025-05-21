@@ -71,7 +71,7 @@ class TestLogoutEndpoint:
             assert response.status_code == HTTPStatus.OK
             assert response.content_type == "application/json"
             assert "message" in response.json
-            assert b"Logged out successfully." in response.data
+            assert b"Logged out successfully" in response.data
             spied_validate_token.assert_called_once_with(
                 valid_session_token
             )

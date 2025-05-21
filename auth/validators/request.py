@@ -37,10 +37,10 @@ def validate_authorisation_header(auth_header: str) -> str:
         follow Bearer <token> format.
 
     Returns:
-        The extracted token string.
+        str: The extracted token.
     """
     if not auth_header:
-        raise ValidationError("Authorization header is required.")
+        raise ValidationError("Authorization header required")
 
     if not auth_header.startswith("Bearer "):
         raise ValidationError(
@@ -49,7 +49,7 @@ def validate_authorisation_header(auth_header: str) -> str:
 
     token = auth_header.removeprefix("Bearer ").strip()
     if not token:
-        raise ValidationError("Authorization token is required.")
+        raise ValidationError("Authorization token required")
 
     return token
 
@@ -63,7 +63,8 @@ def validate_credentials_payload(request: Request) -> Credentials:
     Args:
         request: The incoming Flask request object.
     Returns:
-        The parsed and validated credentials in a dedicated data class.
+        Credentials: The parsed and validated credentials in a dedicated
+        data class.
     """
     data = _validate_json_payload(
         request,
@@ -93,7 +94,7 @@ def _validate_json_payload(
         required key is missing or of the wrong type.
 
     Returns:
-        The parsed and validated JSON payload as a dictionary.
+        dict[str, Any]: The parsed and validated JSON payload as a dictionary.
     """
     payload = request.get_json()
     if payload is None:

@@ -45,7 +45,7 @@ def validate_username(username: str) -> str:
     Args:
         username (str): The username to validate.
     Returns:
-        The validated username.
+        str: The validated username.
     Raises:
         ValidationError: If the username is not a string or invalid.
     """
@@ -64,7 +64,7 @@ def validate_password(password: str) -> str:
     Args:
         password (str): The password to validate.
     Returns:
-        The validated password.
+        str: The validated password.
     Raises:
         ValidationError: If the password is not a string or invalid.
     """
@@ -84,7 +84,7 @@ def validate_token(token: str) -> str:
     Args:
         token (str): The token to validate.
     Returns:
-        The validated token.
+        str: The validated token.
     Raises:
         ValidationError: If the token is not a string or invalid.
     """
@@ -103,7 +103,7 @@ def _validate_regex(input: str, pattern: Pattern, error_info: str) -> str:
         pattern (Pattern): The compiled regular expression pattern to apply.
         info (str): Human-readable description of the expected input format.
     Returns:
-        The validated input.
+        str: The validated input.
     Raises:
         ValidationError: If input is not a string or does not match
         the pattern.
@@ -112,5 +112,5 @@ def _validate_regex(input: str, pattern: Pattern, error_info: str) -> str:
         raise ValidationError(error_info)
 
     # Must not log potentially sensitive input.
-    logger.debug("Input matches pattern.")
+    logger.debug("Input matches pattern")
     return input

@@ -32,8 +32,8 @@ def create_session(username: str, token: str) -> bool:
         username (str): The username for whom a session is created.
         token (str): The session token identifying the user's session.
     Returns:
-        True if a new session was created, False if the token already
-        exists.
+        bool: True if a new session was created, False if the token
+        already exists.
     """
     if token in _sessions:
         return False
@@ -50,7 +50,8 @@ def get_username_from_token(token: str) -> str | None:
     Args:
         token (str): The session token corresponding to a user.
     Returns:
-        The username if the token is found, otherwise None.
+        Optional[str]: The username if the token is found,
+        None otherwise.
     """
     return _sessions.get(token)
 
@@ -63,7 +64,7 @@ def delete_session(token: str) -> bool:
     Args:
         token (str): The provided session token.
     Returns:
-        True if the session was removed, False otherwise.
+        bool: True if the session was removed, False otherwise.
     """
     if token not in _sessions:
         logger.warning("Attempt to delete non-existent session.")

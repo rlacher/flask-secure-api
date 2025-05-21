@@ -440,13 +440,13 @@ class TestProtectedRoutes:
     ):
         """Tests handling of missing Authorization header."""
         mock_validate_auth_header.side_effect = ValidationError(
-            "Authorization header is required."
+            "Authorization header required"
         )
 
         response = client.get('/protected')  # No Authorization header
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
-        assert b"Authorization header is required." in response.data
+        assert b"Authorization header required" in response.data
         mock_validate_token.assert_not_called()
         mock_get_protected_data.assert_not_called()
 
@@ -537,7 +537,7 @@ class TestProtectedRoutes:
         assert response.status_code == HTTPStatus.OK
         assert response.content_type == "application/json"
         assert "message" in response.json
-        assert b"Logged out successfully." in response.data
+        assert b"Logged out successfully" in response.data
         mock_validate_auth_header.assert_called_once_with("Bearer token")
         mock_validate_token.assert_called_once_with("token")
         mock_logout_user.assert_called_once_with("validated_token")

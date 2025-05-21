@@ -92,7 +92,7 @@ curl -k -X POST \
   -H "Authorization: Bearer 5d59516c29d8ad8443c1c2e6d3da51ac" \
   https://localhost:5000/logout
 ```
-Example response: `{"message": "Logged out successfully."}`.
+Example response: `{"message": "Logged out successfully"}`.
 
 ### Error Handling
 

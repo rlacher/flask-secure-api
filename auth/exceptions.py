@@ -25,7 +25,7 @@ class BaseAuthError(Exception, ABC):
 
     Subclasses should define a description attribute to provide context.
     """
-    description = "An authentication occurred."
+    description = "An authentication error occurred"
 
     def __init__(self, message=None):
         """
@@ -44,14 +44,17 @@ class BaseAuthError(Exception, ABC):
 
 
 class ServiceError(BaseAuthError, ABC):
-    """Base class for service-related errors."""
-    description = "A service error occurred."
+    """Base class for service-related errors.
+
+    Subclasses must define a status_code attribute for HTTP response mapping.
+    """
+    description = "A service error occurred"
     status_code = HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 class ValidationError(BaseAuthError):
     """Validation errors raised directly from validator functions."""
-    description = "A validation error occurred."
+    description = "A validation error occurred"
 
 
 class UserAlreadyExistsError(ServiceError):

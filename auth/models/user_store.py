@@ -36,7 +36,7 @@ def add_user(username: str, hashed_password: str) -> bool:
         hashed_password (str): The user's hashed password.
 
     Returns:
-        True if the user was added, false otherwise.
+        bool: True if the user was added, False otherwise.
     """
     if username in _users:
         logger.debug(f"Username already in user store: {username}")
@@ -66,8 +66,8 @@ def get_hashed_password(username: str) -> str | None:
     Args:
         username (str): The username for which to lookup the hashed password.
     Returns:
-        str: The hashed password for the given username.
-        None: If the username is not found.
+        Optional[str]: The hashed password for the given username,
+        None otherwise.
     """
     if username not in _users:
         logger.debug(
