@@ -10,18 +10,18 @@ A minimal authentication API built with Python and Flask, focused on showcasing 
 
 ## Key Features
 
-- **Basic Authentication:** Essential user registration and login functionality.
-- **TLS-Enabled:** Secure authentication via HTTPS with self-signed certificate.
-- **Session Security:** Token-based protection for dummy data.
-- **Input Validation:** Robust input validation to prevent malicious data entry.
-- **Modular Design:** Maintainable and extensible organised codebase.
-- **Clear Documentation:** API endpoint specification and Python docstrings.
-- **Comprehensive Testing:** Unit and integration tests ensure high API resilience.
-- **Memory-Based:** Simple in-memory store demonstrating core API logic.
+- **User Authentication:** Secure credential handling for registration and login.
+- **Session Management:**  Token-based session control for managing login state.
+- **Transport Security:** HTTPS support via self-signed TLS certificate.
+- **Input Validation:** Strict validation logic to guard against malicious input.
+- **Modular Design:** Organised, extensible codebase with clean architecture.
+- **Encapsulated Storage:** Abstracted in-memory store, replaceable with a persistent database.
+- **Comprehensive Testing:** Unit and integration tests to verify endpoint reliability.
+- **Developer Documentation:** OpenAPI specification and inline Python docstrings.
 
 ## Quick Start
 
-Before starting, ensure you have Python 3.12 or higher and the latest pip installed on your system. Windows users must also preinstall OpenSSL.
+Before starting, ensure you have Python 3.12 or higher and the latest pip installed on your system. Windows users who wish to enable HTTPS must also install OpenSSL to support certificate generation.
 
 Run the authentication API locally:
 
