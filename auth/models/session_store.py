@@ -66,7 +66,7 @@ def delete_session(token: str) -> bool:
         True if the session was removed, False otherwise.
     """
     if token not in _sessions:
-        logger.warning(f"Attempt to delete non-existent session: {token}")
+        logger.warning("Attempt to delete non-existent session.")
         return False
 
     del _sessions[token]

@@ -111,5 +111,6 @@ def _validate_regex(input: str, pattern: Pattern, error_info: str) -> str:
     if not isinstance(input, str) or not pattern.fullmatch(input):
         raise ValidationError(error_info)
 
-    logger.debug(f"Input matches pattern: {input}")
+    # Must not log potentially sensitive input.
+    logger.debug("Input matches pattern.")
     return input

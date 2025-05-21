@@ -92,7 +92,7 @@ def login_user(
         token = secrets.token_hex(SESSION_TOKEN_LENGTH_BYTES)
         if not session_store.create_session(username, token):
             raise DuplicateSessionTokenError()
-        logger.info(f"User '{username}' logged in. Session token: {token}")
+        logger.info(f"User '{username}' logged in.")
         return token
     except DuplicateSessionTokenError as exception:
         raise RuntimeError(
