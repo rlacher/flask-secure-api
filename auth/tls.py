@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2025 René Lacher
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,17 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Entry point for the Flask authentication API.
+"""Encapsulates TLS certificate detection logic."""
+import logging
+from os import path
 
-Initialises and runs the Flask application, dynamically enabling TLS
-if a self-signed certificate is found.
-"""
-from auth import create_app
-from auth.tls import get_ssl_context
+CERT_FOLDER = "certs"
+CERT_FILE = path.join(CERT_FOLDER, "cert.pem")
+KEY_FILE = path.join(CERT_FOLDER, "key.pem")
+
+logger = logging.getLogger(__name__)
 
 
-app = create_app()
-
-if __name__ == '__main__':
-    app.run(debug=True, ssl_context=get_ssl_context())
+def get_ssl_context():
+    """Check for TLS certificates and return appropriate context."""
+    if path.exists(CERT_FILE) and path.exists(KEY_FILE):
+        return (CERT_FILE, KEY_FILE)
+    logger.warning("TLS certificates missing, running in HTTP mode.")
+    return None

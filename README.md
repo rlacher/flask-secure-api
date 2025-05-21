@@ -11,6 +11,7 @@ A minimal authentication API built with Python and Flask, focused on showcasing 
 ## Key Features
 
 - **Basic Authentication:** Essential user registration and login functionality.
+- **TLS-Enabled:** Secure authentication via HTTPS with self-signed certificate.
 - **Session Security:** Token-based protection for dummy data.
 - **Input Validation:** Robust input validation to prevent malicious data entry.
 - **Modular Design:** Maintainable and extensible organised codebase.
@@ -20,7 +21,7 @@ A minimal authentication API built with Python and Flask, focused on showcasing 
 
 ## Quick Start
 
-Before starting, ensure you have Python 3.12 or higher and the latest pip installed on your system.
+Before starting, ensure you have Python 3.12 or higher and the latest pip installed on your system. Windows users must also preinstall OpenSSL.
 
 Run the authentication API locally:
 
@@ -41,9 +42,14 @@ Run the authentication API locally:
     ```bash
     pip install -r requirements.txt
     ```
-5.  **Run the API:**
+5. **Create self-signed certificate (recommended):**
     ```bash
-    ./run.py
+    mkdir certs
+    openssl req -x509 -newkey rsa:4096 -nodes -keyout certs/key.pem -out certs/cert.pem -days 365
+    ```
+6.  **Run the API:**
+    ```bash
+    python3 run.py
     ```
 
 ## API Usage
@@ -53,38 +59,38 @@ Below are examples of interacting with key API endpoints.
 ### Register a new user
 
 ```bash
-curl -X POST \
+curl -k -X POST \
   -H "Content-Type: application/json" \
   -d '{"username": "new_user", "password": "secure_password1"}' \
-  http://localhost:5000/register
+  https://localhost:5000/register
 ```
 Example response: `{"message": "User successfully registered"}`
 
 ### Log in an existing user
 
 ```bash
-curl -X POST \
+curl -k -X POST \
   -H "Content-Type: application/json" \
   -d '{"username": "new_user", "password": "secure_password1"}' \
-  http://localhost:5000/login
+  https://localhost:5000/login
 ```
 Example response: `{"session_token": "5d59516c29d8ad8443c1c2e6d3da51ac"}`.
 
 ### Accessing protected data
 
 ```bash
-curl -X GET \
+curl -k -X GET \
   -H "Authorization: Bearer 5d59516c29d8ad8443c1c2e6d3da51ac" \
-  http://localhost:5000/protected
+  https://localhost:5000/protected
 ```
 Example response: `{"message": "Hello new_user. Here is your protected data."}`.
 
 ### Log out from session
 
 ```bash
-curl -X POST \
+curl -k -X POST \
   -H "Authorization: Bearer 5d59516c29d8ad8443c1c2e6d3da51ac" \
-  http://localhost:5000/logout
+  https://localhost:5000/logout
 ```
 Example response: `{"message": "Logged out successfully."}`.
 
@@ -93,10 +99,10 @@ Example response: `{"message": "Logged out successfully."}`.
 The API provides informative error responses for various failure scenarios. For instance, registering with an invalid username returns a `400 Bad Request` with a JSON body detailing the validation error:
 
 ```bash
-curl -X POST \
+curl -k -X POST \
   -H "Content-Type: application/json" \
   -d '{"username": "invalid$username", "password": "secure_password1"}' \
-  http://localhost:5000/register
+  https://localhost:5000/register
 ```
 Example response: `{"error": "Username must be a string, 3-20 alphanumeric character or underscore."}`
 
@@ -147,11 +153,13 @@ API documentation is automatically generated in OpenAPI format.
 For interactive exploration using the Swagger UI:
 
 1.  Ensure the Flask application is running.
-2.  Navigate your web browser to `http://localhost:5000/apidocs/`.
+2.  Navigate your web browser to `https://localhost:5000/apidocs/`.
+
+Your browser may flag the self-signed certificate as untrusted. It is safe to bypass when developing locally.
 
 ## Test
 
-This project is thoroughly unit and integration tested, with a test suite comprising 117 automated test cases to guarantee API integrity.
+This project is thoroughly unit and integration tested, with a test suite comprising 120 automated test cases to guarantee API integrity.
 
 ### Execution
 
