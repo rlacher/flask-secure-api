@@ -16,8 +16,11 @@
 Entry point for the Flask authentication API.
 
 Initialises and runs the Flask application, dynamically enabling TLS
-if a self-signed certificate is found.
+if a self-signed certificate is found. Debug mode is opt-in via
+FLASK_DEBUG=1.
 """
+import os
+
 from auth import create_app
 from auth.tls import get_ssl_context
 
@@ -25,4 +28,7 @@ from auth.tls import get_ssl_context
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True, ssl_context=get_ssl_context())
+    debug = os.getenv('FLASK_DEBUG', '').lower() not in (
+        '', '0', 'false', 'no'
+    )
+    app.run(debug=debug, ssl_context=get_ssl_context())
