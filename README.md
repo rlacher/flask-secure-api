@@ -51,6 +51,8 @@ Run the authentication API locally:
     ```bash
     python3 run.py
     ```
+    Debug mode is off by default. Set `FLASK_DEBUG=1` for local development;
+    never enable it on a publicly reachable instance.
 
 ## API Usage
 
